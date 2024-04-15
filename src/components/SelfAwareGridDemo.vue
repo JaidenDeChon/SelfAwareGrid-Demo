@@ -88,7 +88,7 @@
                   'and style any specific row or column in a grid with dynamically-placed children.',
 
                 navigationDescription: 'There is no easy way to navigate a grid of focusable items the same way you ' +
-                  'would a stylesheet. If you want to traverse through a grid using anything other than your "Tab" ' +
+                  'would a spreadsheet. If you want to traverse through a grid using anything other than your "Tab" ' +
                   'key, such as arrow-keys or anything else, or if you want to traverse vertically and not just ' +
                   'horizontally, you\'re in for a hard time setting that behavior up on your own. SelfAwareGrid ' +
                   'helps with this process, providing an easy way to make this behavior possible on a responsive grid.'
