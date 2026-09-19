@@ -47,10 +47,12 @@ npm run preview  # serve the production build
 `vite.config.ts` sets `base` to `/SelfAwareGrid-Demo/` so the built asset URLs line up with GitHub Pages; dev and
 preview use the same base.
 
-## Deployment
+## CI and deployment
 
-Pushing to `main` runs `.github/workflows/deploy.yml`, which builds the site and publishes `dist/` to GitHub Pages.
-Repository settings need **Pages → Build and deployment → Source** set to **GitHub Actions**.
+- `.github/workflows/build.yml` runs `npm ci` and `npm run build` on every pull request, so a broken build (or a
+  type error &mdash; `npm run build` runs `vue-tsc` first) is caught on the PR rather than on `main`.
+- `.github/workflows/deploy.yml` runs on pushes to `main`, building the site and publishing `dist/` to GitHub
+  Pages. Repository settings need **Pages → Build and deployment → Source** set to **GitHub Actions**.
 
 ## License
 
