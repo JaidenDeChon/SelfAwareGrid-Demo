@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#0a0a0b" />
+
+    <title>SelfAwareGrid &mdash; positional awareness for CSS grid</title>
+    <meta
+      name="description"
+      content="SelfAwareGrid gives the children of a CSS grid an awareness of where they sit: style responsive rows, columns and corners, and navigate grid cells like a spreadsheet."
+    />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@100..1000&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <script>
+      /*
+       * Applied before first paint so the page never flashes the wrong theme.
+       * The toggle in the header writes to the same storage key.
+       */
+      (function () {
+          try {
+              var stored = localStorage.getItem('sag-demo-theme');
+              var dark = stored ? stored === 'dark' : !window.matchMedia('(prefers-color-scheme: light)').matches;
+              document.documentElement.classList.toggle('dark', dark);
+              document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+          } catch (error) {
+              document.documentElement.classList.add('dark');
+          }
+      })();
+    </script>
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="SelfAwareGrid" />
+    <meta
+      property="og:description"
+      content="Positional awareness for the children of a CSS grid. Style responsive rows, columns and corners, and navigate cells like a spreadsheet."
+    />
+  </head>
+  <body>
+    <div id="app"></div>
+    <noscript>
+      <p style="font-family: sans-serif; padding: 2rem">
+        This demo is interactive and needs JavaScript enabled. The package itself is documented at
+        <a href="https://github.com/JaidenDeChon/SelfAwareGrid">github.com/JaidenDeChon/SelfAwareGrid</a>.
+      </p>
+    </noscript>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

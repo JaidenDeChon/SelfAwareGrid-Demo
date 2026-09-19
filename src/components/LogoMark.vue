@@ -1,0 +1,16 @@
+<template>
+    <svg viewBox="0 0 512 512" role="img" aria-label="SelfAwareGrid" xmlns="http://www.w3.org/2000/svg">
+        <rect width="512" height="512" rx="102.4" ry="102.4" fill="#007BFF" />
+        <g fill="#FFFFFF">
+            <rect x="80" y="80" width="96" height="96" rx="20" />
+            <rect x="208" y="80" width="96" height="96" rx="20" />
+            <rect x="336" y="80" width="96" height="96" rx="20" />
+            <rect x="80" y="208" width="96" height="96" rx="20" />
+            <rect x="80" y="336" width="96" height="96" rx="20" />
+            <rect x="208" y="208" width="96" height="96" rx="20" opacity="0.4" />
+            <rect x="336" y="208" width="96" height="96" rx="20" opacity="0.4" />
+            <rect x="208" y="336" width="96" height="96" rx="20" opacity="0.4" />
+            <rect x="336" y="336" width="96" height="96" rx="20" opacity="0.4" />
+        </g>
+    </svg>
+</template>
