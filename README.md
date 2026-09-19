@@ -48,6 +48,24 @@ npm run preview  # serve the production build
 preview use the same base. Setting `BASE_PATH` overrides it, which is how the preview workflow builds a PR for its
 deeper `/pr-preview/pr-<number>/` URL.
 
+## Share card
+
+`public/social-preview.png` is the Open Graph / Twitter card, at the standard 1200x630. It is generated, not
+hand-drawn: `tools/social-preview.html` is a standalone page using the site's own tokens, fonts and hero
+motifs &mdash; including a real Conway board from a fixed seed, so regenerating produces the same image &mdash;
+and `tools/social-preview.mjs` screenshots it.
+
+```bash
+npm run social-preview   # needs Playwright available; it is not a project dependency
+```
+
+Run it after changing anything the card shows. The script downloads the web fonts and inlines them before
+rendering, and fails if they are missing, because a screenshot taken before the fonts arrive produces a
+fallback-serif image that looks almost right.
+
+`og:image` has to be an absolute URL, so it points at the canonical site rather than at whichever deployment
+is serving the page &mdash; a pull-request preview will therefore show the card from `main`.
+
 ## CI and deployment
 
 Everything is published to the `gh-pages` branch, which GitHub Pages serves:
