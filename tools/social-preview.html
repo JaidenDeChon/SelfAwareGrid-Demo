@@ -58,6 +58,8 @@
       }
 
       .cells { position: absolute; inset: 0; }
+      .glider { position: absolute; inset: 0; }
+      .glider .cell { background-color: rgb(0 123 255 / 0.55); }
       .cell { position: absolute; width: 56px; height: 56px; background-color: rgb(0 123 255 / 0.17); }
 
       .glow {
@@ -149,6 +151,7 @@
       <div class="cells" id="cells"></div>
       <div class="glow"></div>
       <div class="scrim"></div>
+      <div class="glider" id="glider"></div>
 
       <div class="content">
         <div>
@@ -220,17 +223,67 @@
         board = next;
       }
 
-      const host = document.getElementById('cells');
-      board.forEach((alive, i) => {
-        if (!alive) return;
-        const cell = document.createElement('div');
-        cell.className = 'cell';
-        cell.style.left = `${(i % COLS) * CELL}px`;
-        cell.style.top = `${Math.floor(i / COLS) * CELL}px`;
-        host.appendChild(cell);
-      });
+      /*
+       * A glider, stamped into the finished board in the gap above the word "Grid".
+       *
+       * The seeded soup on its own is texture — pleasant, but nothing a reader would recognise. A glider is
+       * the one pattern almost anyone who knows Life knows on sight, and it is the same shape the hero drops
+       * in when its board goes quiet. It goes in after the generations rather than before so the simulation
+       * cannot eat it, with a one-cell margin cleared around it so it reads cleanly against the soup.
+       */
+      const GLIDER = [
+        [0, 1, 0],
+        [0, 0, 1],
+        [1, 1, 1]
+      ];
 
-      document.documentElement.dataset.ready = 'true';
+      const gliderCells = new Set();
+
+      function stampGlider () {
+        // Measure the word itself rather than guessing at it, so this survives a change of type or size.
+        const range = document.createRange();
+        range.selectNodeContents(document.querySelector('h1').lastChild);
+        const word = range.getBoundingClientRect();
+
+        const centre = Math.floor((word.left + word.width / 2) / CELL);
+        const col = Math.max(1, Math.min(COLS - 4, centre - 1));
+        const row = Math.max(0, Math.floor(word.top / CELL) - 3);
+
+        for (let r = row - 1; r <= row + 3; r++) {
+          for (let c = col - 1; c <= col + 3; c++) {
+            if (r >= 0 && c >= 0 && r < ROWS && c < COLS) board[r * COLS + c] = 0;
+          }
+        }
+
+        for (let r = 0; r < 3; r++) {
+          for (let c = 0; c < 3; c++) {
+            const index = (row + r) * COLS + col + c;
+            board[index] = GLIDER[r][c];
+            if (GLIDER[r][c]) gliderCells.add(index);
+          }
+        }
+      }
+
+      function render () {
+        const soup = document.getElementById('cells');
+        const glider = document.getElementById('glider');
+
+        board.forEach((alive, i) => {
+          if (!alive) return;
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.style.left = `${(i % COLS) * CELL}px`;
+          cell.style.top = `${Math.floor(i / COLS) * CELL}px`;
+          (gliderCells.has(i) ? glider : soup).appendChild(cell);
+        });
+      }
+
+      // The measurement depends on the headline's final metrics, so wait for the fonts.
+      document.fonts.ready.then(() => {
+        stampGlider();
+        render();
+        document.documentElement.dataset.ready = 'true';
+      });
     </script>
   </body>
 </html>
