@@ -66,20 +66,24 @@ const cssSnippet = `/* Every child is tagged with where it currently sits. */
     <section id="styling" class="shell scroll-mt-20 py-14 sm:py-20">
 
         <p class="font-mono text-xs uppercase tracking-[0.2em] text-brand-500">01 &mdash; Classnames</p>
-        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Style rows, columns and corners</h2>
+        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Style rows and columns easily</h2>
+        <!-- The package author's own description of the problem, kept word for word. -->
         <p class="mt-4 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
-            CSS can target the third column of a grid, but not &ldquo;whichever column happens to be last right
-            now.&rdquo; SelfAwareGrid measures the grid and tags every child with its position, so a responsive grid
-            can be styled by edge instead of by hard-coded index. Drag the handle and watch the classnames move.
+            Using CSS, there&rsquo;s no way to style specific columns or rows of a responsive grid. If you know
+            exactly which column or row you&rsquo;d like to target, then you can do so, but if your grid is a
+            responsive one, you&rsquo;re out of luck. SelfAwareGrid helps by allowing you to target and style any
+            specific row or column in a grid with dynamically-placed children.
         </p>
 
         <div class="mt-8 flex flex-wrap gap-2 sm:gap-3">
-            <StatChip label="columns" :value="columnCount" />
-            <StatChip label="rows" :value="rowCount" />
-            <StatChip label="cells" :value="cellCount" />
+            <StatChip label="Column count" :value="columnCount" />
+            <StatChip label="Row count" :value="rowCount" />
+            <StatChip label="Cell count" :value="cellCount" />
         </div>
 
-        <div class="mt-6">
+        <h3 class="mt-8 text-lg font-semibold tracking-tight">Resize me!</h3>
+
+        <div class="mt-3">
             <ResizablePanel label="Resize the styling demo grid" :initial-fraction="0.72">
                 <div ref="gridElement" class="sag-grid">
                     <button
@@ -97,23 +101,18 @@ const cssSnippet = `/* Every child is tagged with where it currently sits. */
         </div>
 
         <div class="mt-5 flex flex-wrap items-center gap-3">
-            <div class="flex items-center gap-1 rounded-xl border border-line bg-panel p-1">
-                <button
-                    type="button"
-                    class="stepper"
-                    aria-label="Remove a cell"
-                    :disabled="cellCount <= 4"
-                    @click="cellCount = Math.max(4, cellCount - 4)"
-                >&minus;</button>
-                <span class="min-w-20 text-center font-mono text-xs text-ink-muted">{{ cellCount }} cells</span>
-                <button
-                    type="button"
-                    class="stepper"
-                    aria-label="Add a cell"
-                    :disabled="cellCount >= 72"
-                    @click="cellCount = Math.min(72, cellCount + 4)"
-                >+</button>
-            </div>
+            <button
+                type="button"
+                class="control-button"
+                :disabled="cellCount >= 72"
+                @click="cellCount = Math.min(72, cellCount + 1)"
+            >Add one</button>
+            <button
+                type="button"
+                class="control-button"
+                :disabled="cellCount <= 4"
+                @click="cellCount = Math.max(4, cellCount - 1)"
+            >Remove one</button>
 
             <p class="basis-full font-mono text-xs text-ink-muted sm:basis-auto">Tap a cell to inspect it</p>
         </div>
@@ -234,36 +233,34 @@ const cssSnippet = `/* Every child is tagged with where it currently sits. */
     color: hsl(222 47% 11%);
 }
 
-.stepper {
-    width: 2.25rem;
-    height: 2.25rem;
+.control-button {
+    padding: 0.6rem 1rem;
 
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: 0.6rem;
+    background-color: var(--panel);
 
-    border-radius: 0.5rem;
     color: var(--ink);
-    font-size: 1.125rem;
-    line-height: 1;
+    font-size: 0.875rem;
+    font-weight: 500;
 
-    transition: background-color 150ms ease, color 150ms ease;
+    transition: border-color 150ms ease, background-color 150ms ease;
 }
 
-.stepper:hover:not(:disabled) {
-    background-color: var(--raised);
-    color: var(--color-brand-500);
+.control-button:hover:not(:disabled) {
+    border-color: var(--color-brand-500);
+    background-color: color-mix(in srgb, var(--color-brand-500) 10%, transparent);
 }
 
-.stepper:disabled {
+.control-button:disabled {
     color: var(--ink-muted);
-    opacity: 0.4;
+    opacity: 0.5;
     cursor: not-allowed;
 }
 
 @media (prefers-reduced-motion: reduce) {
     .cell,
-    .stepper {
+    .control-button {
         transition: none;
     }
 

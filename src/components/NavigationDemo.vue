@@ -49,6 +49,12 @@ function move (direction: Direction, focusCell: boolean): void {
     });
 }
 
+/** The original demo's shortcut into the grid: put focus on cell zero and let the arrow keys take over. */
+function focusFirstChild (): void {
+    activeIndex.value = 0;
+    void nextTick(() => (gridElement.value?.children[0] as HTMLElement | undefined)?.focus());
+}
+
 function onKeydown (event: KeyboardEvent): void {
     const directions: Record<string, Direction> = {
         ArrowUp: 'up',
@@ -89,20 +95,27 @@ const pad: { direction: Direction; label: string; glyph: string; area: string }[
     <section id="navigation" class="shell scroll-mt-20 py-14 sm:py-20">
 
         <p class="font-mono text-xs uppercase tracking-[0.2em] text-brand-500">02 &mdash; Navigation</p>
-        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Move through a grid like a spreadsheet</h2>
+        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Navigate a grid like a spreadsheet</h2>
+        <!-- The package author's own description of the problem, kept word for word. -->
         <p class="mt-4 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
-            <kbd class="kbd">Tab</kbd> only ever walks a grid in document order. Because SelfAwareGrid knows how many
-            columns are currently rendered, it can hand you the index of the cell above, below, left or right &mdash;
-            and that answer stays correct as the grid reflows.
+            There is no easy way to navigate a grid of focusable items the same way you would a spreadsheet. If you
+            want to traverse through a grid using anything other than your &ldquo;Tab&rdquo; key, such as arrow-keys
+            or anything else, or if you want to traverse vertically and not just horizontally, you&rsquo;re in for a
+            hard time setting that behavior up on your own. SelfAwareGrid helps with this process, providing an easy
+            way to make this behavior possible on a responsive grid.
         </p>
 
         <div class="mt-8 flex flex-wrap gap-2 sm:gap-3">
-            <StatChip label="columns" :value="columnCount" />
-            <StatChip label="rows" :value="rowCount" />
-            <StatChip label="active" :value="activeIndex" />
+            <StatChip label="Column count" :value="columnCount" />
+            <StatChip label="Row count" :value="rowCount" />
+            <StatChip label="Focused child" :value="activeIndex" />
         </div>
 
-        <div class="mt-6">
+        <h3 class="mt-8 text-lg font-semibold tracking-tight">
+            Focus a grid item, then traverse using arrow-keys!
+        </h3>
+
+        <div class="mt-3">
             <ResizablePanel label="Resize the navigation demo grid" :initial-fraction="0.72">
                 <div ref="gridElement" class="sag-grid" @keydown="onKeydown">
                     <button
@@ -120,12 +133,15 @@ const pad: { direction: Direction; label: string; glyph: string; area: string }[
         </div>
 
         <div class="mt-5 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <p class="max-w-md text-sm leading-relaxed text-ink-muted">
-                Focus a cell and use the
-                <kbd class="kbd">&uarr;</kbd> <kbd class="kbd">&darr;</kbd>
-                <kbd class="kbd">&larr;</kbd> <kbd class="kbd">&rarr;</kbd>
-                keys &mdash; or use the pad, which is there because phones do not have arrow keys.
-            </p>
+            <div class="flex flex-col items-start gap-3">
+                <button type="button" class="control-button" @click="focusFirstChild">Focus First Child</button>
+                <p class="max-w-md text-sm leading-relaxed text-ink-muted">
+                    Then use the
+                    <kbd class="kbd">&uarr;</kbd> <kbd class="kbd">&darr;</kbd>
+                    <kbd class="kbd">&larr;</kbd> <kbd class="kbd">&rarr;</kbd>
+                    keys &mdash; or the pad, which is there because phones do not have arrow keys.
+                </p>
+            </div>
 
             <div class="arrow-pad" role="group" aria-label="Move the selection">
                 <button
@@ -140,22 +156,19 @@ const pad: { direction: Direction; label: string; glyph: string; area: string }[
             </div>
         </div>
 
-        <div class="mt-6 flex w-fit items-center gap-1 rounded-xl border border-line bg-panel p-1">
+        <div class="mt-6 flex flex-wrap items-center gap-3">
             <button
                 type="button"
-                class="stepper"
-                aria-label="Remove a cell"
-                :disabled="cellCount <= 4"
-                @click="cellCount = Math.max(4, cellCount - 4)"
-            >&minus;</button>
-            <span class="min-w-20 text-center font-mono text-xs text-ink-muted">{{ cellCount }} cells</span>
-            <button
-                type="button"
-                class="stepper"
-                aria-label="Add a cell"
+                class="control-button"
                 :disabled="cellCount >= 72"
-                @click="cellCount = Math.min(72, cellCount + 4)"
-            >+</button>
+                @click="cellCount = Math.min(72, cellCount + 1)"
+            >Add one</button>
+            <button
+                type="button"
+                class="control-button"
+                :disabled="cellCount <= 4"
+                @click="cellCount = Math.max(4, cellCount - 1)"
+            >Remove one</button>
         </div>
 
         <div class="mt-6">
@@ -252,37 +265,35 @@ const pad: { direction: Direction; label: string; glyph: string; area: string }[
     font-size: 0.75rem;
 }
 
-.stepper {
-    width: 2.25rem;
-    height: 2.25rem;
+.control-button {
+    padding: 0.6rem 1rem;
 
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: 0.6rem;
+    background-color: var(--panel);
 
-    border-radius: 0.5rem;
     color: var(--ink);
-    font-size: 1.125rem;
-    line-height: 1;
+    font-size: 0.875rem;
+    font-weight: 500;
 
-    transition: background-color 150ms ease, color 150ms ease;
+    transition: border-color 150ms ease, background-color 150ms ease;
 }
 
-.stepper:hover:not(:disabled) {
-    background-color: var(--raised);
-    color: var(--color-brand-500);
+.control-button:hover:not(:disabled) {
+    border-color: var(--color-brand-500);
+    background-color: color-mix(in srgb, var(--color-brand-500) 10%, transparent);
 }
 
-.stepper:disabled {
+.control-button:disabled {
     color: var(--ink-muted);
-    opacity: 0.4;
+    opacity: 0.5;
     cursor: not-allowed;
 }
 
 @media (prefers-reduced-motion: reduce) {
     .cell,
     .pad-button,
-    .stepper {
+    .control-button {
         transition: none;
     }
 }

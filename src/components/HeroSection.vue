@@ -5,6 +5,22 @@ const command = 'npm install self-aware-grid';
 const copied = ref(false);
 let timer: ReturnType<typeof setTimeout> | undefined;
 
+/*
+ * Both bullet points are the package README's own wording, kept verbatim.
+ */
+const points = [
+    {
+        lead: 'Responsively',
+        rest: ' styling specific grid columns, rows, and cells -- no more hard-coding a grid width for every ' +
+            'resolution your app supports. You can now style rows and columns independently and without ' +
+            'hard-coding an nth-column.'
+    },
+    {
+        lead: '',
+        rest: 'Enabling excel-like keyboard navigation of grid cells.'
+    }
+];
+
 async function copy (): Promise<void> {
     try {
         await navigator.clipboard.writeText(command);
@@ -32,18 +48,24 @@ async function copy (): Promise<void> {
                 self-aware-grid
             </p>
 
-            <h1 class="mt-6 max-w-3xl text-4xl font-semibold leading-[1.08] tracking-tight sm:text-6xl">
-                Grid children that know
-                <span class="text-brand-500">where they are</span>.
+            <h1 class="mt-6 break-words text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
+                Self<span class="text-brand-500">Aware</span>Grid
             </h1>
 
             <p class="mt-6 max-w-2xl text-lg leading-relaxed text-ink-muted sm:text-xl">
-                A tiny, dependency-free library that measures a CSS grid as it reflows and gives every child a sense
-                of its own position &mdash; so you can style rows, columns and corners responsively, and navigate
-                cells with the arrow keys.
+                SelfAwareGrid was created to add additional functionality to CSS grid, such as:
             </p>
 
-            <div class="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <ul class="mt-6 max-w-2xl space-y-4">
+                <li v-for="point in points" :key="point.rest" class="flex gap-3">
+                    <span class="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" aria-hidden="true"></span>
+                    <span class="text-base leading-relaxed text-ink-muted sm:text-lg">
+                        <strong v-if="point.lead" class="font-semibold text-ink">{{ point.lead }}</strong>{{ point.rest }}
+                    </span>
+                </li>
+            </ul>
+
+            <div class="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <a
                     href="#styling"
                     class="inline-flex items-center justify-center rounded-xl bg-brand-500 px-5 py-3 font-medium text-white transition-colors duration-150 hover:bg-brand-600"
@@ -58,17 +80,6 @@ async function copy (): Promise<void> {
                     <span class="shrink-0 text-xs text-ink-muted">{{ copied ? 'copied' : 'copy' }}</span>
                 </button>
             </div>
-
-            <dl class="mt-12 grid max-w-3xl grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-3">
-                <div v-for="item in [
-                    { term: 'Zero dependencies', detail: 'Plain DOM and a ResizeObserver. Nothing else.' },
-                    { term: 'Framework agnostic', detail: 'It takes an element. This demo happens to use Vue.' },
-                    { term: 'Reflow aware', detail: 'Measurements follow the grid at any width.' }
-                ]" :key="item.term">
-                    <dt class="font-medium text-ink">{{ item.term }}</dt>
-                    <dd class="mt-1 text-sm leading-relaxed text-ink-muted">{{ item.detail }}</dd>
-                </div>
-            </dl>
         </div>
     </section>
 </template>

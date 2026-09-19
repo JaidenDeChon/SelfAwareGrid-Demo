@@ -7,22 +7,22 @@ const { theme, toggle } = useTheme();
 
 <template>
     <header class="sticky top-0 z-50 border-b border-line/70 bg-surface/80 backdrop-blur-md">
-        <div class="shell flex h-16 items-center justify-between gap-4">
+        <div class="shell flex h-16 items-center justify-between gap-3">
 
-            <a href="#top" class="flex items-center gap-2.5">
-                <LogoMark class="h-8 w-8 rounded-lg" />
-                <span class="text-lg font-semibold tracking-tight">SelfAwareGrid</span>
+            <a href="#top" class="flex min-w-0 items-center gap-2 sm:gap-2.5">
+                <LogoMark class="h-8 w-8 shrink-0 rounded-lg" />
+                <span class="truncate text-base font-semibold tracking-tight sm:text-lg">SelfAwareGrid</span>
             </a>
 
             <nav class="hidden items-center gap-6 text-sm text-ink-muted md:flex">
-                <a class="transition-colors duration-150 hover:text-ink" href="#styling">Classnames</a>
+                <a class="transition-colors duration-150 hover:text-ink" href="#styling">Styling</a>
                 <a class="transition-colors duration-150 hover:text-ink" href="#navigation">Navigation</a>
-                <a class="transition-colors duration-150 hover:text-ink" href="#install">Install</a>
+                <a class="transition-colors duration-150 hover:text-ink" href="#docs">Docs</a>
             </nav>
 
-            <div class="flex items-center gap-2">
+            <div class="flex shrink-0 items-center gap-2">
                 <a
-                    class="rounded-lg border border-line px-3 py-1.5 text-sm text-ink-muted transition-colors duration-150 hover:border-brand-500 hover:text-ink"
+                    class="rounded-lg border border-line px-2.5 py-1.5 text-xs text-ink-muted transition-colors duration-150 hover:border-brand-500 hover:text-ink sm:px-3 sm:text-sm"
                     href="https://github.com/JaidenDeChon/SelfAwareGrid"
                     target="_blank"
                     rel="noreferrer"

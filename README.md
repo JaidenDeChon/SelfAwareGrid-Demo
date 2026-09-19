@@ -7,12 +7,21 @@ that measures a CSS grid as it reflows and gives every child an awareness of its
 
 ## What it demonstrates
 
-- **Positional classnames.** Resize the grid container and watch SelfAwareGrid retag the top row, bottom row and
-  outer columns as the grid reflows. Tap any cell to read `isTopRow`, `isNthRow`, `isNthColumn` and friends
-  straight off the live instance.
-- **Spreadsheet-style navigation.** Arrow keys walk the grid vertically and horizontally using
+- **Style rows and columns easily.** Resize the grid container and watch SelfAwareGrid retag the top row, bottom
+  row and outer columns as the grid reflows. Tap any cell to read `isTopRow`, `isNthRow`, `isNthColumn` and
+  friends straight off the live instance.
+- **Navigate a grid like a spreadsheet.** Arrow keys walk the grid vertically and horizontally using
   `getGridItemAbove` / `Below` / `ToTheLeft` / `ToTheRight`. An on-screen arrow pad covers touch devices, which
   have no arrow keys.
+
+## Docs
+
+The documentation section is the package's own README, imported straight from the installed copy of
+`self-aware-grid` (`src/docs.ts`) and rendered with [marked](https://marked.js.org). Bumping the dependency
+updates the docs with it, so the page can never drift from the version it demonstrates.
+
+Only two things are dropped: the README's title and intro, which the page's hero already quotes verbatim, and its
+two "see the demo" links, which point back at this page. Everything else is rendered word for word.
 
 ### Resizing on mobile
 
