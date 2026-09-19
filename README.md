@@ -45,14 +45,34 @@ npm run preview  # serve the production build
 ```
 
 `vite.config.ts` sets `base` to `/SelfAwareGrid-Demo/` so the built asset URLs line up with GitHub Pages; dev and
-preview use the same base.
+preview use the same base. Setting `BASE_PATH` overrides it, which is how the preview workflow builds a PR for its
+deeper `/pr-preview/pr-<number>/` URL.
 
 ## CI and deployment
 
-- `.github/workflows/build.yml` runs `npm ci` and `npm run build` on every pull request, so a broken build (or a
-  type error &mdash; `npm run build` runs `vue-tsc` first) is caught on the PR rather than on `main`.
-- `.github/workflows/deploy.yml` runs on pushes to `main`, building the site and publishing `dist/` to GitHub
-  Pages. Repository settings need **Pages → Build and deployment → Source** set to **GitHub Actions**.
+Everything is published to the `gh-pages` branch, which GitHub Pages serves:
+
+| Workflow | Runs on | Does |
+| --- | --- | --- |
+| `build.yml` | every pull request | `npm ci` and `npm run build`, so a broken build or a type error (`npm run build` runs `vue-tsc` first) is caught on the PR rather than on `main` |
+| `preview.yml` | pull requests opened, reopened, pushed to, closed | builds the PR and publishes it to `pr-preview/pr-<number>/`, comments the URL, and removes the preview when the PR closes |
+| `deploy.yml` | pushes to `main` | builds and publishes to the root of `gh-pages` |
+
+So a pull request can be viewed, running, at
+`https://jaidendechon.github.io/SelfAwareGrid-Demo/pr-preview/pr-<number>/` before it is merged.
+
+Two things make that co-existence work, and both are load-bearing: the `main` deploy passes
+`clean-exclude: pr-preview/` so clearing the old build does not take the previews with it, and `force: false` so
+it rebases rather than force-pushing over them.
+
+### Repository settings
+
+- **Settings → Pages → Build and deployment → Source**: *Deploy from a branch*, branch `gh-pages`, folder `/ (root)`.
+- **Settings → Actions → General → Workflow permissions**: the workflows request `contents: write` explicitly, but
+  if a deploy is rejected for permissions, set this to *Read and write permissions*.
+
+A pull request from a fork gets a read-only token and so cannot publish a preview; `preview.yml` skips those, and
+`build.yml` still checks them.
 
 ## License
 

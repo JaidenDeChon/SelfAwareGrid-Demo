@@ -16,7 +16,8 @@
         "verbatimModuleSyntax": true,
         "resolveJsonModule": true,
         "noEmit": true,
-        "types": ["vite/client"]
+        // "node" is here for vite.config.ts, which reads process.env.BASE_PATH.
+        "types": ["vite/client", "node"]
     },
     "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "vite.config.ts"]
 }
