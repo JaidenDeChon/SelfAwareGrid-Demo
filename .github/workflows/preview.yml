@@ -1,0 +1,50 @@
+name: PR preview
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    # A pull request from a fork is given a read-only token and cannot publish a preview. Those are still
+    # covered by the Build workflow.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Nothing needs building when the pull request is closing — the preview is only being removed.
+      - name: Set up Node
+        if: github.event.action != 'closed'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        if: github.event.action != 'closed'
+        run: npm ci
+
+      - name: Build
+        if: github.event.action != 'closed'
+        env:
+          BASE_PATH: /SelfAwareGrid-Demo/pr-preview/pr-${{ github.event.number }}/
+        run: npm run build
+
+      # Deploys on open, reopen and synchronize; removes the preview on close. Comments the URL on the PR.
+      - name: Deploy preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: dist
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          action: auto

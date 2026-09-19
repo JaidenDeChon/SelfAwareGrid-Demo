@@ -1,0 +1,43 @@
+name: Deploy demo to GitHub Pages
+
+on:
+  push:
+    branches: ['main']
+  workflow_dispatch:
+
+# The site is served from the gh-pages branch, so this needs to write to the repository.
+permissions:
+  contents: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish to the gh-pages branch
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: dist
+          branch: gh-pages
+          # Pull-request previews live under pr-preview/ on this same branch. Clearing out the previous build
+          # must not take them with it, and the default force-push would overwrite them wholesale.
+          clean-exclude: pr-preview/
+          force: false

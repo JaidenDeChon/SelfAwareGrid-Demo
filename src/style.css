@@ -1,0 +1,223 @@
+@import 'tailwindcss';
+
+/* Class-based dark mode so the theme toggle can override the OS preference. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: 'Afacad Flux', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    /* Headings. Idiqlat ships weights 200-400 only, so 400 is the heaviest the hero can go and 200 the
+       lightest for section headings. Never ask it for a weight it does not have — the browser would
+       synthesise one, which looks wrong at display sizes. */
+    --font-display: 'Idiqlat', ui-serif, Georgia, serif;
+
+    /* Brand blue, built around #007BFF — the blue from the jaiden.dev logo. */
+    --color-brand-50: hsl(211 100% 97%);
+    --color-brand-100: hsl(211 100% 93%);
+    --color-brand-200: hsl(211 100% 86%);
+    --color-brand-300: hsl(211 100% 76%);
+    --color-brand-400: hsl(211 100% 64%);
+    --color-brand-500: hsl(211 100% 50%);
+    --color-brand-600: hsl(211 100% 43%);
+    --color-brand-700: hsl(211 100% 35%);
+    --color-brand-800: hsl(211 95% 27%);
+    --color-brand-900: hsl(211 90% 21%);
+    --color-brand-950: hsl(211 95% 13%);
+
+    /* The gold from the same brand palette, used as the counterpoint edge colour in the demos. */
+    --color-accent-300: hsl(51 100% 72%);
+    --color-accent-400: hsl(51 100% 61%);
+    --color-accent-500: hsl(51 100% 50%);
+    --color-accent-600: hsl(51 100% 40%);
+}
+
+/* Semantic surfaces, redefined per theme below. */
+@theme inline {
+    --color-surface: var(--surface);
+    --color-panel: var(--panel);
+    --color-raised: var(--raised);
+    --color-line: var(--line);
+    --color-ink: var(--ink);
+    --color-ink-muted: var(--ink-muted);
+}
+
+:root {
+    --surface: hsl(210 40% 98%);
+    --panel: hsl(0 0% 100%);
+    --raised: hsl(210 40% 96%);
+    --line: hsl(214 25% 88%);
+    --ink: hsl(222 47% 11%);
+    --ink-muted: hsl(215 16% 42%);
+
+    /*
+     * Syntax palette. Every hue is derived from one of the two brand hues: blue (211) and gold (51).
+     *   violet 255  — analogous to the blue, one step around the cool side
+     *   cyan   190  — analogous to the blue, one step around the warm side
+     *   amber   24  — split-complement of the blue, the same family the brand gold sits in
+     *   pink   331  — triadic with the blue
+     * In light mode the gold drops to 40 and darkens, since 51 at full lightness is unreadable on white.
+     */
+    --code-keyword: hsl(255 62% 50%);
+    --code-builtin: hsl(211 100% 42%);
+    --code-function: hsl(193 90% 32%);
+    --code-string: hsl(40 92% 34%);
+    --code-number: hsl(24 88% 42%);
+    --code-attr: hsl(331 68% 46%);
+    --code-comment: hsl(215 16% 46%);
+    --code-punctuation: hsl(215 16% 40%);
+
+    /* Canvas cannot read hsl()/color-mix() tokens, so the hero simulation gets plain channels. */
+    --life-alive-rgb: 0 123 255;
+    --life-alive-alpha: 0.18;
+}
+
+.dark {
+    --surface: hsl(222 33% 6%);
+    --panel: hsl(222 30% 9%);
+    --raised: hsl(220 27% 13%);
+    --line: hsl(218 22% 19%);
+    --ink: hsl(210 40% 98%);
+    --ink-muted: hsl(215 18% 62%);
+
+    /* Same hues as above, lifted for a dark background; the gold stays at the brand's own 51. */
+    --code-keyword: hsl(255 85% 76%);
+    --code-builtin: hsl(211 100% 66%);
+    --code-function: hsl(190 82% 60%);
+    --code-string: hsl(51 85% 63%);
+    --code-number: hsl(28 92% 66%);
+    --code-attr: hsl(331 76% 71%);
+    --code-comment: hsl(215 16% 52%);
+    --code-punctuation: hsl(215 18% 62%);
+
+    --life-alive-rgb: 0 123 255;
+    --life-alive-alpha: 0.26;
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+        -webkit-text-size-adjust: 100%;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        html {
+            scroll-behavior: auto;
+        }
+    }
+
+    body {
+        background-color: var(--surface);
+        color: var(--ink);
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        /* Belt and braces: nothing in the layout should scroll the page sideways. */
+        overflow-x: hidden;
+        overscroll-behavior-y: none;
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-brand-500);
+        outline-offset: 2px;
+    }
+
+    /*
+     * The page fades up from its own background colour on first paint. Because `body` already carries the
+     * themed background, this reads as the content resolving out of the page rather than a white flash,
+     * in either colour scheme. It is a CSS animation rather than a JS class toggle so it cannot get stuck
+     * at opacity 0 if something goes wrong before mount.
+     */
+    #app {
+        animation: page-fade-in 700ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    }
+
+    @keyframes page-fade-in {
+        from {
+            opacity: 0;
+            transform: translateY(6px);
+        }
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        #app {
+            animation: none;
+        }
+    }
+}
+
+@layer components {
+    /*
+     * Syntax highlighting. highlight.js emits the classnames; the colours come from the tokens above, so
+     * the theme follows light/dark without a second stylesheet.
+     */
+    .hljs-keyword,
+    .hljs-literal,
+    .hljs-type,
+    .hljs-meta .hljs-keyword,
+    .hljs-selector-tag {
+        color: var(--code-keyword);
+    }
+
+    .hljs-built_in,
+    .hljs-variable.language_,
+    .hljs-title.class_ {
+        color: var(--code-builtin);
+    }
+
+    .hljs-title,
+    .hljs-title.function_,
+    .hljs-section {
+        color: var(--code-function);
+    }
+
+    .hljs-string,
+    .hljs-meta .hljs-string,
+    .hljs-regexp {
+        color: var(--code-string);
+    }
+
+    .hljs-number,
+    .hljs-symbol {
+        color: var(--code-number);
+    }
+
+    .hljs-attr,
+    .hljs-attribute,
+    .hljs-property,
+    .hljs-selector-class,
+    .hljs-selector-id,
+    .hljs-selector-pseudo {
+        color: var(--code-attr);
+    }
+
+    .hljs-comment,
+    .hljs-quote {
+        color: var(--code-comment);
+        font-style: italic;
+    }
+
+    .hljs-punctuation,
+    .hljs-operator {
+        color: var(--code-punctuation);
+    }
+}
+
+@layer components {
+    /* Page gutter — 16px on phones, roomier once there is space. */
+    .shell {
+        width: 100%;
+        max-width: 72rem;
+        margin-inline: auto;
+        padding-inline: 1rem;
+    }
+
+    @media (min-width: 640px) {
+        .shell {
+            padding-inline: 2rem;
+        }
+    }
+}

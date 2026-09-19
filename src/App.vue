@@ -1,37 +1,20 @@
-<template lang="pug">
-
-    div#app
-
-        SelfAwareGridDemo
-
-</template>
-
-<script lang="ts">
-
-    import Vue from 'vue';
-    import SelfAwareGridDemo from '@/components/SelfAwareGridDemo.vue';
-
-    export default Vue.extend({
-        name: 'App',
-        components: { SelfAwareGridDemo }
-    });
-
+<script setup lang="ts">
+import SiteHeader from './components/SiteHeader.vue';
+import HeroSection from './components/HeroSection.vue';
+import StylingDemo from './components/StylingDemo.vue';
+import NavigationDemo from './components/NavigationDemo.vue';
+import DocsSection from './components/DocsSection.vue';
+import SiteFooter from './components/SiteFooter.vue';
 </script>
 
-<style lang="sass">
-
-    body
-
-        padding: 0
-        margin: 0
-
-        background-color: #1d2935
-
-    #app
-
-        font-family: Avenir, Helvetica, Arial, sans-serif
-        -webkit-font-smoothing: antialiased
-        -moz-osx-font-smoothing: grayscale
-        color: #FFFFFF
-
-</style>
+<template>
+    <SiteHeader />
+    <main>
+        <HeroSection />
+        <StylingDemo />
+        <div class="shell"><hr class="border-line" /></div>
+        <NavigationDemo />
+        <DocsSection />
+    </main>
+    <SiteFooter />
+</template>

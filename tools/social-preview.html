@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>SelfAwareGrid — social preview</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@100..1000&family=Idiqlat:wght@200;400&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /*
+       * 1200x630 — the Open Graph / Twitter summary_large_image size.
+       *
+       * The tokens below are copied from the site's dark theme rather than imported, so this file renders
+       * standalone in a browser. If src/style.css changes, these need the same change.
+       */
+      :root {
+        --surface: hsl(222 33% 6%);
+        --panel: hsl(222 30% 9%);
+        --line: hsl(218 22% 19%);
+        --ink: hsl(210 40% 98%);
+        --ink-muted: hsl(215 18% 62%);
+        --brand: #007bff;
+
+        --font-sans: 'Afacad Flux', ui-sans-serif, system-ui, sans-serif;
+        --font-display: 'Idiqlat', ui-serif, Georgia, serif;
+        --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background-color: var(--surface);
+        color: var(--ink);
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .card { position: relative; width: 1200px; height: 630px; overflow: hidden; }
+
+      /* The hero's backdrop: 56px grid, live cells, and the radial glow. */
+      .backdrop {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(to right, var(--line) 1px, transparent 1px),
+          linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+        background-size: 56px 56px;
+        -webkit-mask-image: radial-gradient(ellipse 75% 70% at 50% 0%, #000 40%, transparent 100%);
+        mask-image: radial-gradient(ellipse 75% 70% at 50% 0%, #000 40%, transparent 100%);
+      }
+
+      .cells { position: absolute; inset: 0; }
+      .cell { position: absolute; width: 56px; height: 56px; background-color: rgb(0 123 255 / 0.17); }
+
+      .glow {
+        position: absolute;
+        top: -150px;
+        left: 58%;
+        width: 900px;
+        height: 700px;
+        background: radial-gradient(
+          closest-side,
+          rgb(0 123 255 / 0.26),
+          rgb(0 123 255 / 0.1) 55%,
+          transparent 100%
+        );
+      }
+
+      /*
+       * Darkens the left so the type always has a flat field behind it, whatever the simulation happens to
+       * have drawn there, and gives the card some depth from left to right.
+       */
+      .scrim {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          100deg,
+          var(--surface) 6%,
+          rgb(10 13 20 / 0.82) 38%,
+          rgb(10 13 20 / 0.35) 58%,
+          transparent 78%
+        );
+      }
+
+      .content {
+        position: relative;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 64px;
+        padding: 0 76px;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 9px 20px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background-color: var(--panel);
+        font-family: var(--font-mono);
+        font-size: 21px;
+        color: var(--ink-muted);
+      }
+
+      .tag::before {
+        content: '';
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        background-color: var(--brand);
+      }
+
+      h1 {
+        margin-top: 30px;
+        font-family: var(--font-display);
+        font-weight: 400;
+        font-size: 112px;
+        line-height: 1;
+        letter-spacing: -0.02em;
+      }
+
+      h1 .aware { color: var(--brand); }
+
+      p {
+        margin-top: 30px;
+        max-width: 640px;
+        font-size: 31px;
+        line-height: 1.45;
+        color: var(--ink-muted);
+      }
+
+      .mark { flex-shrink: 0; width: 264px; height: 264px; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="backdrop"></div>
+      <div class="cells" id="cells"></div>
+      <div class="glow"></div>
+      <div class="scrim"></div>
+
+      <div class="content">
+        <div>
+          <span class="tag">self-aware-grid</span>
+
+          <h1>Self<span class="aware">Aware</span>Grid</h1>
+
+          <p>
+            Powerful enhancements to CSS grid, with a simple API enabling more intelligent functionality and
+            more responsive styling
+          </p>
+        </div>
+
+        <svg class="mark" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+          <rect width="512" height="512" rx="102.4" ry="102.4" fill="#007BFF" />
+          <g fill="#FFFFFF">
+            <rect x="80" y="80" width="96" height="96" rx="20" />
+            <rect x="208" y="80" width="96" height="96" rx="20" />
+            <rect x="336" y="80" width="96" height="96" rx="20" />
+            <rect x="80" y="208" width="96" height="96" rx="20" />
+            <rect x="80" y="336" width="96" height="96" rx="20" />
+            <rect x="208" y="208" width="96" height="96" rx="20" opacity="0.4" />
+            <rect x="336" y="208" width="96" height="96" rx="20" opacity="0.4" />
+            <rect x="208" y="336" width="96" height="96" rx="20" opacity="0.4" />
+            <rect x="336" y="336" width="96" height="96" rx="20" opacity="0.4" />
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <script>
+      /*
+       * The live cells are a real Conway board, same B3/S23 the hero runs, from a fixed seed and a fixed
+       * number of generations — so the image is the same every time it is regenerated.
+       */
+      const CELL = 56;
+      const COLS = Math.ceil(1200 / CELL);
+      const ROWS = Math.ceil(630 / CELL);
+      const GENERATIONS = 4;
+
+      // mulberry32: small, seeded, and deterministic across browsers.
+      function rng (seed) {
+        return function () {
+          seed |= 0;
+          seed = (seed + 0x6d2b79f5) | 0;
+          let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      const random = rng(20260919);
+      let board = Array.from({ length: COLS * ROWS }, () => (random() < 0.32 ? 1 : 0));
+
+      const at = (b, r, c) => (r < 0 || c < 0 || r >= ROWS || c >= COLS ? 0 : b[r * COLS + c]);
+
+      for (let g = 0; g < GENERATIONS; g++) {
+        const next = new Array(board.length);
+        for (let r = 0; r < ROWS; r++) {
+          for (let c = 0; c < COLS; c++) {
+            let n = 0;
+            for (const [dr, dc] of [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]]) {
+              n += at(board, r + dr, c + dc);
+            }
+            const self = at(board, r, c);
+            next[r * COLS + c] = self === 1 ? (n === 2 || n === 3 ? 1 : 0) : (n === 3 ? 1 : 0);
+          }
+        }
+        board = next;
+      }
+
+      /*
+       * A glider, stamped into the finished board in the gap above the word "Grid".
+       *
+       * The seeded soup on its own is texture — pleasant, but nothing a reader would recognise. A glider is
+       * the one pattern almost anyone who knows Life knows on sight, and it is the same shape the hero drops
+       * in when its board goes quiet. It goes in after the generations rather than before so the simulation
+       * cannot eat it, with a one-cell margin cleared around it so it reads cleanly against the soup.
+       */
+      const GLIDER = [
+        [0, 1, 0],
+        [0, 0, 1],
+        [1, 1, 1]
+      ];
+
+      function stampGlider () {
+        // Measure the word itself rather than guessing at it, so this survives a change of type or size.
+        const range = document.createRange();
+        range.selectNodeContents(document.querySelector('h1').lastChild);
+        const word = range.getBoundingClientRect();
+
+        const centre = Math.floor((word.left + word.width / 2) / CELL);
+        const col = Math.max(1, Math.min(COLS - 4, centre - 1));
+        const row = Math.max(0, Math.floor(word.top / CELL) - 3);
+
+        for (let r = row - 1; r <= row + 3; r++) {
+          for (let c = col - 1; c <= col + 3; c++) {
+            if (r >= 0 && c >= 0 && r < ROWS && c < COLS) board[r * COLS + c] = 0;
+          }
+        }
+
+        for (let r = 0; r < 3; r++) {
+          for (let c = 0; c < 3; c++) board[(row + r) * COLS + col + c] = GLIDER[r][c];
+        }
+      }
+
+      function render () {
+        const host = document.getElementById('cells');
+
+        board.forEach((alive, i) => {
+          if (!alive) return;
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.style.left = `${(i % COLS) * CELL}px`;
+          cell.style.top = `${Math.floor(i / COLS) * CELL}px`;
+          host.appendChild(cell);
+        });
+      }
+
+      // The measurement depends on the headline's final metrics, so wait for the fonts.
+      document.fonts.ready.then(() => {
+        stampGlider();
+        render();
+        document.documentElement.dataset.ready = 'true';
+      });
+    </script>
+  </body>
+</html>
