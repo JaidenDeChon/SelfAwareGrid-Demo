@@ -17,7 +17,7 @@ const links = [
                 <LogoMark class="h-7 w-7 rounded-md" />
                 <p class="text-sm text-ink-muted">
                     SelfAwareGrid &mdash; built by
-                    <a class="text-ink underline decoration-brand-500 underline-offset-4" href="https://jaiden.dev">Jaiden DeChon</a>
+                    <a class="text-brand-500 underline decoration-brand-500/50 underline-offset-4 transition-colors duration-150 hover:decoration-brand-500" href="https://jaiden.dev">Jaiden DeChon</a>
                 </p>
             </div>
 

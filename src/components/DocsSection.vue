@@ -1,24 +1,51 @@
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import CodeBlock from './CodeBlock.vue';
-import { docsHeadings, docsHtml } from '../docs';
+import InstallTabs from './InstallTabs.vue';
+import { docsHeadings, docsParts } from '../docs';
 
-const install = 'npm install self-aware-grid';
+const activeHeading = ref(docsHeadings[0]?.id ?? '');
+
+let frame = 0;
+let onScroll: (() => void) | null = null;
+
+/** Marks the heading the reader is currently under: the last one to have passed the top of the viewport. */
+function updateActiveHeading (): void {
+    // Headings scroll to 6rem (their scroll-margin) under the sticky header. Allowing a little more than
+    // that keeps a heading parked at exactly its anchor on the right side of the comparison, where
+    // sub-pixel layout would otherwise push it just past the line.
+    const line = 120;
+    let current = docsHeadings[0]?.id ?? '';
+
+    for (const heading of docsHeadings) {
+        const element = document.getElementById(heading.id);
+        if (element && element.getBoundingClientRect().top <= line) current = heading.id;
+    }
+
+    activeHeading.value = current;
+}
+
+onMounted(() => {
+    onScroll = () => {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(updateActiveHeading);
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    updateActiveHeading();
+});
+
+onBeforeUnmount(() => {
+    cancelAnimationFrame(frame);
+    if (onScroll) window.removeEventListener('scroll', onScroll);
+});
 </script>
 
 <template>
     <section id="docs" class="shell scroll-mt-20 border-t border-line py-14 sm:py-20">
 
         <p class="font-mono text-xs uppercase tracking-[0.2em] text-brand-500">03 &mdash; Docs</p>
-        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Documentation</h2>
-        <p class="mt-4 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
-            Straight from the
-            <a
-                class="text-ink underline decoration-brand-500 underline-offset-4"
-                href="https://github.com/JaidenDeChon/SelfAwareGrid"
-                target="_blank"
-                rel="noreferrer"
-            >package repository</a>, so it always matches the version this demo is built against.
-        </p>
+        <h2 class="mt-3 font-display text-3xl font-extralight tracking-tight sm:text-4xl">Documentation</h2>
 
         <div class="mt-10 gap-10 lg:grid lg:grid-cols-[13rem_minmax(0,1fr)]">
 
@@ -28,9 +55,20 @@ const install = 'npm install self-aware-grid';
                     <p class="font-mono text-xs uppercase tracking-wider text-ink-muted">Contents</p>
                     <ul class="mt-3 space-y-1.5 border-l border-line">
                         <li v-for="heading in docsHeadings" :key="heading.id">
+                            <!--
+                                The active entry gets the full treatment. Hovering a different entry previews
+                                it in a dimmer form; hovering the active one changes nothing, because its
+                                classes replace the hover ones rather than sitting underneath them.
+                            -->
                             <a
-                                class="-ml-px block border-l border-transparent py-0.5 text-sm text-ink-muted transition-colors duration-150 hover:border-brand-500 hover:text-ink"
-                                :class="heading.depth === 3 ? 'pl-6' : 'pl-3 font-medium text-ink'"
+                                class="-ml-px block border-l py-0.5 text-sm transition-colors duration-150"
+                                :class="[
+                                    heading.depth === 3 ? 'pl-6' : 'pl-3 font-medium',
+                                    activeHeading === heading.id
+                                        ? 'border-brand-500 text-ink'
+                                        : 'border-transparent text-ink-muted hover:border-brand-500/40 hover:text-ink/70'
+                                ]"
+                                :aria-current="activeHeading === heading.id ? 'location' : undefined"
                                 :href="`#${heading.id}`"
                             >{{ heading.text }}</a>
                         </li>
@@ -39,17 +77,18 @@ const install = 'npm install self-aware-grid';
             </nav>
 
             <div class="min-w-0">
-                <h3 class="scroll-mt-24 text-xl font-semibold tracking-tight">Installation</h3>
-                <div class="mt-3">
-                    <CodeBlock label="terminal" :code="install" />
+                <h3 class="scroll-mt-24 font-display text-xl font-extralight tracking-tight">Installation</h3>
+                <div class="mt-4 max-w-md">
+                    <InstallTabs />
                 </div>
 
-                <!--
-                    The README is trusted content: it ships inside the dependency this site installs, and it is
-                    rendered once at module scope rather than on every render.
-                -->
-                <!-- eslint-disable-next-line vue/no-v-html -->
-                <div class="markdown mt-12" v-html="docsHtml"></div>
+                <div class="mt-12 space-y-4">
+                    <template v-for="(part, index) in docsParts" :key="index">
+                        <!-- eslint-disable-next-line vue/no-v-html -->
+                        <div v-if="part.kind === 'html'" class="markdown" v-html="part.html"></div>
+                        <CodeBlock v-else :label="part.label" :code="part.code" :lang="part.lang" />
+                    </template>
+                </div>
             </div>
         </div>
     </section>
@@ -60,12 +99,13 @@ const install = 'npm install self-aware-grid';
     scroll-margin-top: 6rem;
     margin-top: 3rem;
 
+    font-family: var(--font-display);
     font-size: 1.5rem;
-    font-weight: 600;
+    font-weight: 200;
     letter-spacing: -0.01em;
 }
 
-.markdown :deep(h2:first-child) {
+.markdown:first-child :deep(h2:first-child) {
     margin-top: 0;
 }
 
@@ -73,8 +113,9 @@ const install = 'npm install self-aware-grid';
     scroll-margin-top: 6rem;
     margin-top: 2.25rem;
 
-    font-size: 1.125rem;
-    font-weight: 600;
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 200;
 }
 
 .markdown :deep(p) {
@@ -111,8 +152,7 @@ const install = 'npm install self-aware-grid';
     text-underline-offset: 4px;
 }
 
-/* Inline code, as opposed to a fenced block. */
-.markdown :deep(:not(pre) > code) {
+.markdown :deep(code) {
     padding: 0.05rem 0.35rem;
 
     border-radius: 0.3rem;
@@ -121,22 +161,6 @@ const install = 'npm install self-aware-grid';
     color: var(--ink);
     font-family: var(--font-mono);
     font-size: 0.85em;
-}
-
-.markdown :deep(pre) {
-    overflow-x: auto;
-    margin-top: 1rem;
-    padding: 0.9rem 1rem;
-
-    border: 1px solid var(--line);
-    border-radius: 0.6rem;
-    background-color: var(--raised);
-}
-
-.markdown :deep(pre code) {
-    color: var(--ink);
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    line-height: 1.65;
+    overflow-wrap: anywhere;
 }
 </style>

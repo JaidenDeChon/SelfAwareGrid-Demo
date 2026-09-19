@@ -7,6 +7,10 @@ export interface DocsHeading {
     depth: 2 | 3;
 }
 
+export type DocsPart =
+    | { kind: 'html'; html: string }
+    | { kind: 'code'; label: string; code: string; lang: string };
+
 /**
  * The docs on this page are the package's own README, read straight out of the installed copy of
  * `self-aware-grid` — bumping the dependency updates the docs with it, so the two can never drift.
@@ -30,9 +34,26 @@ function slugify (text: string): string {
         .replace(/^-+|-+$/g, '');
 }
 
+/**
+ * Nearly every snippet in the README opens with a line comment describing what the call does. That reads
+ * better as the snippet's header — and moving it there means the copy button comes along with it, rather
+ * than each block needing its own.
+ */
+function splitLeadingComment (source: string): { label: string; code: string } {
+    const lines = source.split('\n');
+    const comment: string[] = [];
+
+    while (lines.length && lines[0].trim().startsWith('//')) {
+        comment.push(lines.shift()!.trim().replace(/^\/\/\s?/, ''));
+    }
+
+    while (lines.length && lines[0].trim() === '') lines.shift();
+
+    return { label: comment.join(' '), code: lines.join('\n').trimEnd() };
+}
+
 const rendered = marked.parse(forThisPage(readme), { async: false }) as string;
 
-// Give every heading an id so the contents list can link to it, and collect those headings as it goes.
 const parsed = new DOMParser().parseFromString(rendered, 'text/html');
 const headings: DocsHeading[] = [];
 
@@ -43,5 +64,35 @@ parsed.body.querySelectorAll('h2, h3').forEach((element) => {
     headings.push({ id, text, depth: element.tagName === 'H3' ? 3 : 2 });
 });
 
-export const docsHtml = parsed.body.innerHTML;
+// Split the document into prose and code, so the code can be rendered by the same component (and so get the
+// same header, copy button and highlighting) as the snippets written by hand elsewhere on the page.
+const parts: DocsPart[] = [];
+let prose: string[] = [];
+
+function flushProse (): void {
+    const html = prose.join('');
+    if (html.trim()) parts.push({ kind: 'html', html });
+    prose = [];
+}
+
+parsed.body.childNodes.forEach((node) => {
+    const element = node.nodeType === Node.ELEMENT_NODE ? (node as HTMLElement) : null;
+    const code = element?.tagName === 'PRE' ? element.querySelector('code') : null;
+
+    if (!code) {
+        prose.push(element ? element.outerHTML : (node.textContent ?? ''));
+        return;
+    }
+
+    flushProse();
+
+    const lang = /language-(\w+)/.exec(code.className)?.[1] ?? 'javascript';
+    const { label, code: body } = splitLeadingComment(code.textContent ?? '');
+
+    parts.push({ kind: 'code', label: label || lang, code: body, lang });
+});
+
+flushProse();
+
+export const docsParts = parts;
 export const docsHeadings = headings;

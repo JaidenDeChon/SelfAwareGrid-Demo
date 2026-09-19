@@ -4,13 +4,14 @@ import ResizablePanel from './ResizablePanel.vue';
 import CodeBlock from './CodeBlock.vue';
 import StatChip from './StatChip.vue';
 import { useSelfAwareGrid } from '../composables/useSelfAwareGrid';
+import { initialCellCount } from '../cellCount';
 
 type Direction = 'up' | 'down' | 'left' | 'right';
 
 const gridElement = useTemplateRef<HTMLElement>('gridElement');
 const { grid, columnCount, rowCount, refresh } = useSelfAwareGrid(gridElement);
 
-const cellCount = ref(24);
+const cellCount = ref(initialCellCount(24));
 const activeIndex = ref(0);
 
 watch(cellCount, () => {
@@ -95,7 +96,7 @@ const pad: { direction: Direction; label: string; glyph: string; area: string }[
     <section id="navigation" class="shell scroll-mt-20 py-14 sm:py-20">
 
         <p class="font-mono text-xs uppercase tracking-[0.2em] text-brand-500">02 &mdash; Navigation</p>
-        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Navigate a grid like a spreadsheet</h2>
+        <h2 class="mt-3 font-display text-3xl font-extralight tracking-tight sm:text-4xl">Navigate a grid like a spreadsheet</h2>
         <!-- The package author's own description of the problem, kept word for word. -->
         <p class="mt-4 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
             There is no easy way to navigate a grid of focusable items the same way you would a spreadsheet. If you
@@ -111,7 +112,7 @@ const pad: { direction: Direction; label: string; glyph: string; area: string }[
             <StatChip label="Focused child" :value="activeIndex" />
         </div>
 
-        <h3 class="mt-8 text-lg font-semibold tracking-tight">
+        <h3 class="mt-8 font-display text-lg font-extralight tracking-tight">
             Focus a grid item, then traverse using arrow-keys!
         </h3>
 

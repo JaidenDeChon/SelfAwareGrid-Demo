@@ -6,6 +6,10 @@
 @theme {
     --font-sans: 'Afacad Flux', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    /* Headings. Idiqlat ships weights 200-400 only, so 400 is the heaviest the hero can go and 200 the
+       lightest for section headings. Never ask it for a weight it does not have — the browser would
+       synthesise one, which looks wrong at display sizes. */
+    --font-display: 'Idiqlat', ui-serif, Georgia, serif;
 
     /* Brand blue, built around #007BFF — the blue from the jaiden.dev logo. */
     --color-brand-50: hsl(211 100% 97%);
@@ -44,6 +48,23 @@
     --line: hsl(214 25% 88%);
     --ink: hsl(222 47% 11%);
     --ink-muted: hsl(215 16% 42%);
+
+    /*
+     * Syntax palette. Every hue is derived from one of the two brand hues: blue (211) and gold (51).
+     *   violet 255  — analogous to the blue, one step around the cool side
+     *   cyan   190  — analogous to the blue, one step around the warm side
+     *   amber   24  — split-complement of the blue, the same family the brand gold sits in
+     *   pink   331  — triadic with the blue
+     * In light mode the gold drops to 40 and darkens, since 51 at full lightness is unreadable on white.
+     */
+    --code-keyword: hsl(255 62% 50%);
+    --code-builtin: hsl(211 100% 42%);
+    --code-function: hsl(193 90% 32%);
+    --code-string: hsl(40 92% 34%);
+    --code-number: hsl(24 88% 42%);
+    --code-attr: hsl(331 68% 46%);
+    --code-comment: hsl(215 16% 46%);
+    --code-punctuation: hsl(215 16% 40%);
 }
 
 .dark {
@@ -53,6 +74,16 @@
     --line: hsl(218 22% 19%);
     --ink: hsl(210 40% 98%);
     --ink-muted: hsl(215 18% 62%);
+
+    /* Same hues as above, lifted for a dark background; the gold stays at the brand's own 51. */
+    --code-keyword: hsl(255 85% 76%);
+    --code-builtin: hsl(211 100% 66%);
+    --code-function: hsl(190 82% 60%);
+    --code-string: hsl(51 85% 63%);
+    --code-number: hsl(28 92% 66%);
+    --code-attr: hsl(331 76% 71%);
+    --code-comment: hsl(215 16% 52%);
+    --code-punctuation: hsl(215 18% 62%);
 }
 
 @layer base {
@@ -81,6 +112,90 @@
     :focus-visible {
         outline: 2px solid var(--color-brand-500);
         outline-offset: 2px;
+    }
+
+    /*
+     * The page fades up from its own background colour on first paint. Because `body` already carries the
+     * themed background, this reads as the content resolving out of the page rather than a white flash,
+     * in either colour scheme. It is a CSS animation rather than a JS class toggle so it cannot get stuck
+     * at opacity 0 if something goes wrong before mount.
+     */
+    #app {
+        animation: page-fade-in 700ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    }
+
+    @keyframes page-fade-in {
+        from {
+            opacity: 0;
+            transform: translateY(6px);
+        }
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        #app {
+            animation: none;
+        }
+    }
+}
+
+@layer components {
+    /*
+     * Syntax highlighting. highlight.js emits the classnames; the colours come from the tokens above, so
+     * the theme follows light/dark without a second stylesheet.
+     */
+    .hljs-keyword,
+    .hljs-literal,
+    .hljs-type,
+    .hljs-meta .hljs-keyword,
+    .hljs-selector-tag {
+        color: var(--code-keyword);
+    }
+
+    .hljs-built_in,
+    .hljs-variable.language_,
+    .hljs-title.class_ {
+        color: var(--code-builtin);
+    }
+
+    .hljs-title,
+    .hljs-title.function_,
+    .hljs-section {
+        color: var(--code-function);
+    }
+
+    .hljs-string,
+    .hljs-meta .hljs-string,
+    .hljs-regexp {
+        color: var(--code-string);
+    }
+
+    .hljs-number,
+    .hljs-symbol {
+        color: var(--code-number);
+    }
+
+    .hljs-attr,
+    .hljs-attribute,
+    .hljs-property,
+    .hljs-selector-class,
+    .hljs-selector-id,
+    .hljs-selector-pseudo {
+        color: var(--code-attr);
+    }
+
+    .hljs-comment,
+    .hljs-quote {
+        color: var(--code-comment);
+        font-style: italic;
+    }
+
+    .hljs-punctuation,
+    .hljs-operator {
+        color: var(--code-punctuation);
     }
 }
 

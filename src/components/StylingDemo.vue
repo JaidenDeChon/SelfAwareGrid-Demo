@@ -4,11 +4,12 @@ import ResizablePanel from './ResizablePanel.vue';
 import CodeBlock from './CodeBlock.vue';
 import StatChip from './StatChip.vue';
 import { useSelfAwareGrid } from '../composables/useSelfAwareGrid';
+import { initialCellCount } from '../cellCount';
 
 const gridElement = useTemplateRef<HTMLElement>('gridElement');
 const { grid, columnCount, rowCount, refresh } = useSelfAwareGrid(gridElement);
 
-const cellCount = ref(32);
+const cellCount = ref(initialCellCount(32));
 const selectedIndex = ref<number | null>(null);
 
 // Adding or removing children changes the grid, so the library needs to re-collect them. `flush: 'post'` waits
@@ -66,7 +67,7 @@ const cssSnippet = `/* Every child is tagged with where it currently sits. */
     <section id="styling" class="shell scroll-mt-20 py-14 sm:py-20">
 
         <p class="font-mono text-xs uppercase tracking-[0.2em] text-brand-500">01 &mdash; Classnames</p>
-        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Style rows and columns easily</h2>
+        <h2 class="mt-3 font-display text-3xl font-extralight tracking-tight sm:text-4xl">Style rows and columns easily</h2>
         <!-- The package author's own description of the problem, kept word for word. -->
         <p class="mt-4 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
             Using CSS, there&rsquo;s no way to style specific columns or rows of a responsive grid. If you know
@@ -81,7 +82,7 @@ const cssSnippet = `/* Every child is tagged with where it currently sits. */
             <StatChip label="Cell count" :value="cellCount" />
         </div>
 
-        <h3 class="mt-8 text-lg font-semibold tracking-tight">Resize me!</h3>
+        <h3 class="mt-8 font-display text-lg font-extralight tracking-tight">Resize me!</h3>
 
         <div class="mt-3">
             <ResizablePanel label="Resize the styling demo grid" :initial-fraction="0.72">
@@ -152,7 +153,7 @@ const cssSnippet = `/* Every child is tagged with where it currently sits. */
 
         <div class="mt-6 grid min-w-0 gap-4 lg:grid-cols-2">
             <CodeBlock label="setup.js" :code="snippet" />
-            <CodeBlock label="styles.css" :code="cssSnippet" />
+            <CodeBlock label="styles.css" :code="cssSnippet" lang="css" />
         </div>
     </section>
 </template>
