@@ -65,6 +65,10 @@
     --code-attr: hsl(331 68% 46%);
     --code-comment: hsl(215 16% 46%);
     --code-punctuation: hsl(215 16% 40%);
+
+    /* Canvas cannot read hsl()/color-mix() tokens, so the hero simulation gets plain channels. */
+    --life-alive-rgb: 0 123 255;
+    --life-alive-alpha: 0.18;
 }
 
 .dark {
@@ -84,6 +88,9 @@
     --code-attr: hsl(331 76% 71%);
     --code-comment: hsl(215 16% 52%);
     --code-punctuation: hsl(215 18% 62%);
+
+    --life-alive-rgb: 0 123 255;
+    --life-alive-alpha: 0.26;
 }
 
 @layer base {

@@ -1,44 +1,14 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue';
 import CodeBlock from './CodeBlock.vue';
 import InstallTabs from './InstallTabs.vue';
 import { docsHeadings, docsParts } from '../docs';
+import { useScrollSpy } from '../composables/useScrollSpy';
 
-const activeHeading = ref(docsHeadings[0]?.id ?? '');
-
-let frame = 0;
-let onScroll: (() => void) | null = null;
-
-/** Marks the heading the reader is currently under: the last one to have passed the top of the viewport. */
-function updateActiveHeading (): void {
-    // Headings scroll to 6rem (their scroll-margin) under the sticky header. Allowing a little more than
-    // that keeps a heading parked at exactly its anchor on the right side of the comparison, where
-    // sub-pixel layout would otherwise push it just past the line.
-    const line = 120;
-    let current = docsHeadings[0]?.id ?? '';
-
-    for (const heading of docsHeadings) {
-        const element = document.getElementById(heading.id);
-        if (element && element.getBoundingClientRect().top <= line) current = heading.id;
-    }
-
-    activeHeading.value = current;
-}
-
-onMounted(() => {
-    onScroll = () => {
-        cancelAnimationFrame(frame);
-        frame = requestAnimationFrame(updateActiveHeading);
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    updateActiveHeading();
-});
-
-onBeforeUnmount(() => {
-    cancelAnimationFrame(frame);
-    if (onScroll) window.removeEventListener('scroll', onScroll);
-});
+// The first heading stays selected while the reader is still above it, so the list is never blank.
+const { active: activeHeading } = useScrollSpy(
+    docsHeadings.map((heading) => heading.id),
+    { fallbackToFirst: true }
+);
 </script>
 
 <template>

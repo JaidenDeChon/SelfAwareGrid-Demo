@@ -28,7 +28,7 @@ const points = [
         -->
         <div class="pointer-events-none absolute inset-0 -z-10">
             <LifeGrid />
-            <div class="absolute left-1/2 top-[-14rem] h-[28rem] w-[46rem] max-w-[140vw] -translate-x-1/2 rounded-full bg-brand-500/15 blur-[120px] dark:bg-brand-500/25"></div>
+            <div class="hero-glow"></div>
         </div>
 
         <div class="shell py-16 sm:py-24 lg:py-28">
@@ -67,3 +67,38 @@ const points = [
         </div>
     </section>
 </template>
+
+<style scoped>
+/*
+ * A painted gradient, not `filter: blur()`.
+ *
+ * The blurred version had to be re-rasterised every time the simulation underneath it drew a frame — a
+ * 120px blur over a 736x448 box, sixty times a second — which both flickered in time with the loop and was
+ * the single cause of every dropped frame on this page. A radial gradient is rasterised once and then only
+ * composited, and at these radii it is indistinguishable from the blur it replaces.
+ */
+.hero-glow {
+    position: absolute;
+    top: -14rem;
+    left: 50%;
+    width: min(46rem, 140vw);
+    height: 28rem;
+    transform: translateX(-50%);
+
+    background: radial-gradient(
+        closest-side,
+        color-mix(in srgb, var(--color-brand-500) 17%, transparent),
+        color-mix(in srgb, var(--color-brand-500) 7%, transparent) 55%,
+        transparent 100%
+    );
+}
+
+:global(.dark) .hero-glow {
+    background: radial-gradient(
+        closest-side,
+        color-mix(in srgb, var(--color-brand-500) 30%, transparent),
+        color-mix(in srgb, var(--color-brand-500) 12%, transparent) 55%,
+        transparent 100%
+    );
+}
+</style>

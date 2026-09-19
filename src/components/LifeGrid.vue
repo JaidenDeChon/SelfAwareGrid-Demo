@@ -4,10 +4,12 @@ import SelfAwareGrid from 'self-aware-grid';
 
 const CELL = 56;
 const STEP_MS = 700;
+const FADE_MS = 260;
 const SEED_DENSITY = 0.3;
 
 const container = useTemplateRef<HTMLElement>('container');
 const gridElement = useTemplateRef<HTMLElement>('gridElement');
+const canvasElement = useTemplateRef<HTMLCanvasElement>('canvasElement');
 
 const cellCount = ref(0);
 
@@ -17,10 +19,26 @@ const grid = shallowRef<SelfAwareGrid | null>(null);
 let neighbours: number[][] = [];
 let cells: Uint8Array = new Uint8Array(0);
 let previous: Uint8Array = new Uint8Array(0);
+/** Per-cell render alpha, eased towards `cells` so births and deaths fade rather than pop. */
+let alpha: Float32Array = new Float32Array(0);
+/** Snapshot of `alpha` when the current fade began. */
+let from: Float32Array = new Float32Array(0);
+/** Indices whose alpha is actually moving during the current fade. */
+let changed: Int32Array = new Int32Array(0);
+let changedCount = 0;
+
+let columns = 0;
+let width = 0;
+let height = 0;
+
+let context: CanvasRenderingContext2D | null = null;
+let palette = { alive: '0 123 255', aliveAlpha: 0.26 };
 
 let timer: ReturnType<typeof setInterval> | undefined;
+let fadeFrame = 0;
 let resizeObserver: ResizeObserver | null = null;
 let visibilityObserver: IntersectionObserver | null = null;
+let themeObserver: MutationObserver | null = null;
 let onVisibilityChange: (() => void) | null = null;
 
 let onScreen = true;
@@ -55,7 +73,7 @@ function buildNeighbours (): void {
         const u = up(i);
         const d = down(i);
 
-        const candidates = [
+        neighbours[i] = [
             u,
             d,
             left(i),
@@ -64,10 +82,129 @@ function buildNeighbours (): void {
             step(u, right),
             step(d, left),
             step(d, right)
-        ];
-
-        neighbours[i] = candidates.filter(inRange);
+        ].filter(inRange);
     }
+}
+
+function readPalette (): void {
+    const style = getComputedStyle(document.documentElement);
+    palette = {
+        alive: style.getPropertyValue('--life-alive-rgb').trim() || palette.alive,
+        aliveAlpha: Number(style.getPropertyValue('--life-alive-alpha')) || palette.aliveAlpha
+    };
+}
+
+/**
+ * Draws the whole simulation in one pass.
+ *
+ * This used to be one DOM node per cell with a CSS transition on each. `background-color` cannot be animated
+ * on the compositor, so every frame repainted several hundred elements on the main thread — which both cost
+ * ~10% of a frame budget and forced the hero's blurred glow to be re-rasterised in step with the simulation.
+ * A single canvas is one paint of one element instead.
+ */
+/** Paints one cell at its current alpha, clearing whatever was under it first. */
+function paintCell (i: number): void {
+    if (!context) return;
+
+    const x = (i % columns) * CELL;
+    const y = Math.floor(i / columns) * CELL;
+
+    context.clearRect(x, y, CELL, CELL);
+
+    const a = alpha[i];
+    if (a < 0.01) return;
+
+    context.globalAlpha = a * palette.aliveAlpha;
+    context.fillRect(x, y, CELL, CELL);
+}
+
+/** Full repaint. Only needed on a resize, a re-seed or a theme change. */
+function drawAll (): void {
+    if (!context) return;
+
+    context.clearRect(0, 0, width, height);
+
+    // One fillStyle for the whole pass. Per-cell alpha goes through globalAlpha, which is a number
+    // assignment — building an `rgb(... / a)` string per cell per frame meant several hundred colour
+    // parses every frame, and that alone cost more than the simulation.
+    context.fillStyle = `rgb(${palette.alive})`;
+
+    for (let i = 0; i < alpha.length; i++) {
+        const a = alpha[i];
+        if (a < 0.01) continue;
+
+        context.globalAlpha = a * palette.aliveAlpha;
+        context.fillRect((i % columns) * CELL, Math.floor(i / columns) * CELL, CELL, CELL);
+    }
+
+    context.globalAlpha = 1;
+}
+
+/**
+ * Repaints only the cells that are mid-fade.
+ *
+ * A canvas keeps what was drawn on it, and in a typical generation most cells do not change state — so
+ * clearing and refilling the whole surface every frame was mostly redrawing pixels identical to the ones
+ * already there, at device-pixel resolution.
+ */
+function drawChanged (): void {
+    if (!context) return;
+
+    context.fillStyle = `rgb(${palette.alive})`;
+    for (let n = 0; n < changedCount; n++) paintCell(changed[n]);
+    context.globalAlpha = 1;
+}
+
+/**
+ * Fades every cell from where it was to where it now is, over exactly FADE_MS, then stops.
+ *
+ * Interpolating from a snapshot rather than easing towards a moving target is what makes that bound real:
+ * an exponential ease only approaches its target, so the loop outlived the step it belonged to and the
+ * animation never actually stopped running.
+ */
+function runFade (): void {
+    cancelAnimationFrame(fadeFrame);
+    from.set(alpha);
+
+    changedCount = 0;
+    for (let i = 0; i < alpha.length; i++) {
+        if (Math.abs(cells[i] - alpha[i]) > 0.01) changed[changedCount++] = i;
+    }
+
+    if (changedCount === 0) return;
+
+    if (reducedMotion) {
+        for (let n = 0; n < changedCount; n++) alpha[changed[n]] = cells[changed[n]];
+        drawChanged();
+        return;
+    }
+
+    const start = performance.now();
+    let painted = -Infinity;
+
+    const stepFade = (now: number): void => {
+        const t = Math.min((now - start) / FADE_MS, 1);
+
+        // ~30fps is plenty for a background alpha fade, and halves the canvas uploads.
+        if (t < 1 && now - painted < 32) {
+            fadeFrame = requestAnimationFrame(stepFade);
+            return;
+        }
+
+        painted = now;
+        // ease-out, so the change lands softly.
+        const eased = 1 - (1 - t) * (1 - t);
+
+        for (let n = 0; n < changedCount; n++) {
+            const i = changed[n];
+            alpha[i] = from[i] + (cells[i] - from[i]) * eased;
+        }
+
+        drawChanged();
+        if (t < 1) fadeFrame = requestAnimationFrame(stepFade);
+    };
+
+    fadeFrame = requestAnimationFrame(stepFade);
 }
 
 function seed (): void {
@@ -90,15 +227,6 @@ function isStagnant (): boolean {
     return identical || population < cells.length * 0.04;
 }
 
-function paint (): void {
-    const children = gridElement.value?.children;
-    if (!children) return;
-
-    for (let i = 0; i < cells.length; i++) {
-        (children[i] as HTMLElement | undefined)?.classList.toggle('is-alive', cells[i] === 1);
-    }
-}
-
 function tick (): void {
     if (!onScreen || document.hidden) return;
 
@@ -117,7 +245,7 @@ function tick (): void {
     generation++;
     if (isStagnant() || generation > 240) seed();
 
-    paint();
+    runFade();
 }
 
 /**
@@ -127,23 +255,51 @@ function tick (): void {
  * create in the first place, which the library cannot know before they are there.
  */
 function resize (): void {
-    if (!container.value) return;
+    if (!container.value || !canvasElement.value) return;
 
-    const { width, height } = container.value.getBoundingClientRect();
-    if (width === 0 || height === 0) return;
+    const rect = container.value.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
 
-    const columns = Math.max(1, Math.floor(width / CELL));
-    const rows = Math.max(1, Math.ceil(height / CELL));
-    const total = columns * rows;
+    const nextColumns = Math.max(1, Math.floor(rect.width / CELL));
+    const nextRows = Math.max(1, Math.ceil(rect.height / CELL));
+    const total = nextColumns * nextRows;
 
-    if (total === cells.length) return;
+    width = rect.width;
+    height = rect.height;
+
+    /*
+     * Deliberately 1 device pixel per CSS pixel, not devicePixelRatio.
+     *
+     * Everything drawn here is an axis-aligned 56px block on an integer boundary, so there is no detail for
+     * a higher ratio to resolve — and the whole canvas surface is re-uploaded to the GPU on every draw
+     * regardless of how small the dirty region is. At devicePixelRatio 2 that upload is four times the
+     * pixels, under a mask and next to a 120px blur, which was enough to drop frames on its own.
+     */
+    const ratio = 1;
+    canvasElement.value.width = Math.round(width * ratio);
+    canvasElement.value.height = Math.round(height * ratio);
+    canvasElement.value.style.width = `${width}px`;
+    canvasElement.value.style.height = `${height}px`;
+
+    context = canvasElement.value.getContext('2d');
+    context?.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+    if (total === cells.length && nextColumns === columns) {
+        drawAll();
+        return;
+    }
+
+    columns = nextColumns;
 
     cellCount.value = total;
     cells = new Uint8Array(total);
     previous = new Uint8Array(total);
+    alpha = new Float32Array(total);
+    from = new Float32Array(total);
+    changed = new Int32Array(total);
     seed();
 
-    // Let Vue render the new cells before the library measures them.
+    // Let Vue render the measuring grid before the library measures it.
     requestAnimationFrame(() => {
         if (!gridElement.value) return;
 
@@ -151,14 +307,17 @@ function resize (): void {
         grid.value = new SelfAwareGrid(gridElement.value, CELL, false);
         grid.value.beginObservingResize();
 
+        columns = grid.value.columnCount();
         buildNeighbours();
-        paint();
+
+        for (let i = 0; i < alpha.length; i++) alpha[i] = cells[i];
+        drawAll();
     });
 }
 
 onMounted(() => {
     reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
+    readPalette();
     resize();
 
     resizeObserver = new ResizeObserver(() => resize());
@@ -170,16 +329,22 @@ onMounted(() => {
     });
     if (container.value) visibilityObserver.observe(container.value);
 
-    onVisibilityChange = () => { if (!document.hidden) paint(); };
+    onVisibilityChange = () => { if (!document.hidden) drawAll(); };
     document.addEventListener('visibilitychange', onVisibilityChange);
+
+    // The theme toggle swaps the tokens the canvas paints with, so redraw when it does.
+    themeObserver = new MutationObserver(() => { readPalette(); drawAll(); });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
     if (!reducedMotion) timer = setInterval(tick, STEP_MS);
 });
 
 onBeforeUnmount(() => {
     clearInterval(timer);
+    cancelAnimationFrame(fadeFrame);
     resizeObserver?.disconnect();
     visibilityObserver?.disconnect();
+    themeObserver?.disconnect();
     if (onVisibilityChange) document.removeEventListener('visibilitychange', onVisibilityChange);
     grid.value?.destroy();
     grid.value = null;
@@ -188,9 +353,15 @@ onBeforeUnmount(() => {
 
 <template>
     <div ref="container" class="life" aria-hidden="true">
+        <!--
+            The grid SelfAwareGrid measures. It is laid out but never painted: the canvas below draws every
+            cell, so these exist purely so the library has a real, reflowing grid to answer questions about.
+        -->
         <div ref="gridElement" class="life-grid">
-            <div v-for="index in cellCount" :key="index" class="life-cell"></div>
+            <div v-for="index in cellCount" :key="index" class="life-probe"></div>
         </div>
+
+        <canvas ref="canvasElement" class="life-canvas"></canvas>
     </div>
 </template>
 
@@ -200,45 +371,36 @@ onBeforeUnmount(() => {
     inset: 0;
     overflow: hidden;
 
+    /* Grid lines in CSS, as the static backdrop drew them: painted once, never per frame. */
+    background-image:
+        linear-gradient(to right, var(--line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+    background-size: 56px 56px;
+
     /* The same fade the static grid had: everything dissolves away from the top centre. */
     -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 100%);
     mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 100%);
 }
 
 .life-grid {
+    position: absolute;
+    inset: 0;
+
     display: grid;
     grid-template-columns: repeat(auto-fill, 56px);
     column-gap: 0;
     row-gap: 0;
+
+    visibility: hidden;
 }
 
-.life-cell {
+.life-probe {
     width: 56px;
     height: 56px;
-    box-sizing: border-box;
-
-    /* Only two of the four edges, so adjacent cells do not double up their rules. */
-    border-top: 1px solid var(--line);
-    border-left: 1px solid var(--line);
-
-    background-color: transparent;
-    opacity: 0.4;
-
-    transition: background-color 600ms ease-out, opacity 600ms ease-out;
 }
 
-.life-cell.is-alive {
-    background-color: color-mix(in srgb, var(--color-brand-500) 18%, transparent);
-    opacity: 1;
-}
-
-:global(.dark) .life-cell.is-alive {
-    background-color: color-mix(in srgb, var(--color-brand-500) 26%, transparent);
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .life-cell {
-        transition: none;
-    }
+.life-canvas {
+    position: absolute;
+    inset: 0;
 }
 </style>
