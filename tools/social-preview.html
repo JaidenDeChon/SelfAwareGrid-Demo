@@ -90,15 +90,24 @@
         );
       }
 
+      /*
+       * The row has to fit inside its own padding, or `space-between` pushes the overflow past the right
+       * edge and the two margins stop matching — which is what a 112px headline did, leaving 76px on the
+       * left and 29px on the right. At 105px the row measures 1039 against the 1048 available, so the mark
+       * keeps its full size and lands flush with the right padding. `copy` may shrink, so the mark's
+       * position never depends on how wide the headline happens to measure.
+       */
       .content {
         position: relative;
         height: 100%;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 64px;
+        gap: 56px;
         padding: 0 76px;
       }
+
+      .copy { min-width: 0; }
 
       .tag {
         display: inline-flex;
@@ -125,7 +134,8 @@
         margin-top: 30px;
         font-family: var(--font-display);
         font-weight: 400;
-        font-size: 112px;
+        font-size: 105px;
+        white-space: nowrap;
         line-height: 1;
         letter-spacing: -0.02em;
       }
@@ -134,13 +144,13 @@
 
       p {
         margin-top: 30px;
-        max-width: 640px;
+        max-width: 600px;
         font-size: 31px;
         line-height: 1.45;
         color: var(--ink-muted);
       }
 
-      .mark { flex-shrink: 0; width: 264px; height: 264px; }
+      .mark { flex: 0 0 264px; width: 264px; height: 264px; }
     </style>
   </head>
   <body>
@@ -151,7 +161,7 @@
       <div class="scrim"></div>
 
       <div class="content">
-        <div>
+        <div class="copy">
           <span class="tag">self-aware-grid</span>
 
           <h1>Self<span class="aware">Aware</span>Grid</h1>
