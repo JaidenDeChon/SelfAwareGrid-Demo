@@ -23,7 +23,11 @@ function forThisPage (markdown: string): string {
     const fromUsage = markdown.indexOf('\n## Usage');
 
     return (fromUsage === -1 ? markdown : markdown.slice(fromUsage + 1))
-        .replace(/\n##\s+Demo\s*\n[\s\S]*$/, '\n');
+        .replace(/\n##\s+Demo\s*\n[\s\S]*$/, '\n')
+        // TEMPORARY. The section was renamed on the package's main branch, but this page reads the README
+        // out of the published tarball, which still carries the old heading. Delete this line once a
+        // release containing the rename has shipped and the dependency has been bumped to it.
+        .replace(/^###\s+Contextual Awareness\s*$/m, '### Relative Position');
 }
 
 function slugify (text: string): string {

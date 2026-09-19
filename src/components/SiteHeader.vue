@@ -21,7 +21,8 @@ const { active } = useScrollSpy(sections.map((section) => section.id));
 
             <a href="#top" class="flex min-w-0 items-center gap-2 sm:gap-2.5">
                 <LogoMark class="h-8 w-8 shrink-0 rounded-lg" />
-                <span class="truncate font-display text-lg font-normal tracking-tight sm:text-xl">SelfAwareGrid</span>
+                <!-- Below 360px the third button leaves too little room for the wordmark; the mark alone carries it. -->
+                <span class="hidden truncate font-display text-lg font-normal tracking-tight min-[360px]:block sm:text-xl">SelfAwareGrid</span>
             </a>
 
             <!--
@@ -49,6 +50,13 @@ const { active } = useScrollSpy(sections.map((section) => section.id));
                     target="_blank"
                     rel="noreferrer"
                 >GitHub</a>
+
+                <a
+                    class="rounded-lg border border-line px-2.5 py-1.5 text-xs text-ink-muted transition-colors duration-150 hover:border-brand-500 hover:text-ink sm:px-3 sm:text-sm"
+                    href="https://www.npmjs.com/package/self-aware-grid"
+                    target="_blank"
+                    rel="noreferrer"
+                >npm</a>
 
                 <button
                     type="button"
