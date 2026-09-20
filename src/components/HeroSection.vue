@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import InstallTabs from './InstallTabs.vue';
-import LifeGrid from './LifeGrid.vue';
+import LifeBoard from './LifeBoard.vue';
 
 /*
  * Both bullet points are the package README's own wording, kept verbatim.
@@ -27,7 +27,7 @@ const points = [
             cell neighbours which. Same 56px squares and the same fade as the static grid it replaces.
         -->
         <div class="pointer-events-none absolute inset-0 -z-10">
-            <LifeGrid />
+            <LifeBoard class="hero-life" />
             <div class="hero-glow"></div>
         </div>
 
@@ -56,7 +56,7 @@ const points = [
 
             <div class="mt-10 flex flex-col gap-5 sm:flex-row sm:items-end sm:gap-4">
                 <a
-                    href="#styling"
+                    href="#navigation"
                     class="inline-flex shrink-0 items-center justify-center rounded-xl bg-brand-500 px-5 py-3 font-medium text-white transition-colors duration-150 hover:bg-brand-600"
                 >Try the demo</a>
 
@@ -69,6 +69,18 @@ const points = [
 </template>
 
 <style scoped>
+/*
+ * The backdrop board itself: full-bleed behind the copy, and dissolving away from the top centre so the
+ * simulation never competes with the text. The board component owns everything else about it.
+ */
+.hero-life {
+    position: absolute;
+    inset: 0;
+
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 100%);
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 100%);
+}
+
 /*
  * A painted gradient, not `filter: blur()`.
  *

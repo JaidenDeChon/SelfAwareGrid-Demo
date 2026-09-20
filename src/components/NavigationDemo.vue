@@ -95,7 +95,7 @@ const pad: { direction: Direction; label: string; glyph: string; area: string }[
 <template>
     <section id="navigation" class="shell scroll-mt-20 py-14 sm:py-20">
 
-        <p class="font-mono text-xs uppercase tracking-[0.2em] text-brand-500">02 &mdash; Navigation</p>
+        <p class="font-mono text-xs uppercase tracking-[0.2em] text-brand-500">01 &mdash; Navigation</p>
         <h2 class="mt-3 font-display text-3xl font-extralight tracking-tight sm:text-4xl">Navigate a grid like a spreadsheet</h2>
         <!-- The package author's own description of the problem, kept word for word. -->
         <p class="mt-4 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
@@ -266,35 +266,9 @@ const pad: { direction: Direction; label: string; glyph: string; area: string }[
     font-size: 0.75rem;
 }
 
-.control-button {
-    padding: 0.6rem 1rem;
-
-    border: 1px solid var(--line);
-    border-radius: 0.6rem;
-    background-color: var(--panel);
-
-    color: var(--ink);
-    font-size: 0.875rem;
-    font-weight: 500;
-
-    transition: border-color 150ms ease, background-color 150ms ease;
-}
-
-.control-button:hover:not(:disabled) {
-    border-color: var(--color-brand-500);
-    background-color: color-mix(in srgb, var(--color-brand-500) 10%, transparent);
-}
-
-.control-button:disabled {
-    color: var(--ink-muted);
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
 @media (prefers-reduced-motion: reduce) {
     .cell,
-    .pad-button,
-    .control-button {
+    .pad-button {
         transition: none;
     }
 }

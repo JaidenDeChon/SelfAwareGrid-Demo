@@ -66,7 +66,7 @@ const cssSnippet = `/* Every child is tagged with where it currently sits. */
 <template>
     <section id="styling" class="shell scroll-mt-20 py-14 sm:py-20">
 
-        <p class="font-mono text-xs uppercase tracking-[0.2em] text-brand-500">01 &mdash; Classnames</p>
+        <p class="font-mono text-xs uppercase tracking-[0.2em] text-brand-500">03 &mdash; Classnames</p>
         <h2 class="mt-3 font-display text-3xl font-extralight tracking-tight sm:text-4xl">Style rows and columns easily</h2>
         <!-- The package author's own description of the problem, kept word for word. -->
         <p class="mt-4 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
@@ -234,34 +234,8 @@ const cssSnippet = `/* Every child is tagged with where it currently sits. */
     color: hsl(222 47% 11%);
 }
 
-.control-button {
-    padding: 0.6rem 1rem;
-
-    border: 1px solid var(--line);
-    border-radius: 0.6rem;
-    background-color: var(--panel);
-
-    color: var(--ink);
-    font-size: 0.875rem;
-    font-weight: 500;
-
-    transition: border-color 150ms ease, background-color 150ms ease;
-}
-
-.control-button:hover:not(:disabled) {
-    border-color: var(--color-brand-500);
-    background-color: color-mix(in srgb, var(--color-brand-500) 10%, transparent);
-}
-
-.control-button:disabled {
-    color: var(--ink-muted);
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
 @media (prefers-reduced-motion: reduce) {
-    .cell,
-    .control-button {
+    .cell {
         transition: none;
     }
 

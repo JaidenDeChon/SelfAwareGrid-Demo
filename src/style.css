@@ -207,6 +207,38 @@
 }
 
 @layer components {
+    /* The demo sections' shared control: "Add one", "Remove one", "Start over with a random seed". */
+    .control-button {
+        padding: 0.6rem 1rem;
+
+        border: 1px solid var(--line);
+        border-radius: 0.6rem;
+        background-color: var(--panel);
+
+        color: var(--ink);
+        font-size: 0.875rem;
+        font-weight: 500;
+
+        transition: border-color 150ms ease, background-color 150ms ease;
+    }
+
+    .control-button:hover:not(:disabled) {
+        border-color: var(--color-brand-500);
+        background-color: color-mix(in srgb, var(--color-brand-500) 10%, transparent);
+    }
+
+    .control-button:disabled {
+        color: var(--ink-muted);
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .control-button {
+            transition: none;
+        }
+    }
+
     /* Page gutter — 16px on phones, roomier once there is space. */
     .shell {
         width: 100%;

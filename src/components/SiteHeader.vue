@@ -4,8 +4,9 @@ import { useTheme } from '../composables/useTheme';
 import { useScrollSpy } from '../composables/useScrollSpy';
 
 const sections = [
-    { id: 'styling', label: 'Styling' },
     { id: 'navigation', label: 'Navigation' },
+    { id: 'life', label: 'Game of Life' },
+    { id: 'styling', label: 'Styling' },
     { id: 'docs', label: 'Docs' }
 ];
 

@@ -7,12 +7,19 @@ that measures a CSS grid as it reflows and gives every child an awareness of its
 
 ## What it demonstrates
 
-- **Style rows and columns easily.** Resize the grid container and watch SelfAwareGrid retag the top row, bottom
-  row and outer columns as the grid reflows. Tap any cell to read `isTopRow`, `isNthRow`, `isNthColumn` and
-  friends straight off the live instance.
 - **Navigate a grid like a spreadsheet.** Arrow keys walk the grid vertically and horizontally using
   `getGridItemAbove` / `Below` / `ToTheLeft` / `ToTheRight`. An on-screen arrow pad covers touch devices, which
   have no arrow keys.
+- **Conway's Game of Life.** A live board where every cell's eight neighbours are resolved through the library
+  rather than through index arithmetic, so the simulation stays correct across a reflow without ever being told
+  how many columns it has. A button below it re-seeds the board.
+- **Style rows and columns easily.** Resize the grid container and watch SelfAwareGrid retag the top row, bottom
+  row and outer columns as the grid reflows. Tap any cell to read `isTopRow`, `isNthRow`, `isNthColumn` and
+  friends straight off the live instance.
+
+The hero backdrop is that same Game of Life: one simulation in `src/composables/useGameOfLife.ts`, rendered by
+`LifeBoard.vue`, used twice. The hero runs it at 56px cells as a faint backdrop; the demo section runs it at 18px
+(14px on phones) so the organisms have room to travel.
 
 ## Docs
 
