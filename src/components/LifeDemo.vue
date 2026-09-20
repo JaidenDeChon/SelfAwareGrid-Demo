@@ -35,14 +35,15 @@ const rules = [
         <h3 class="mt-3 font-display text-2xl font-extralight tracking-tight sm:text-3xl">Conway&rsquo;s Game of Life</h3>
 
         <p class="mt-4 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
-            The demo below uses SelfAwareGrid to power the navigation and spatial awareness of the organisms in a
-            live example of Conway&rsquo;s Game of Life. Use the button below the demo to start it over with a
-            random seed.
+            The demo below is Conway&rsquo;s Game of Life, powered by SelfAwareGrid&rsquo;s positional awareness
+            capabilities.
         </p>
 
         <p class="mt-4 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
-            Conway&rsquo;s Game of Life is a simple cellular simulation devised by John H. Conway in 1970. Despite
-            its simple rules, the game results in immense complexity.
+            Devised by John H. Conway in 1970 and beloved in mathematics, Conway&rsquo;s Game of Life is a simple
+            cellular simulation. Despite its simple rules, it produces immense complexity based on its beginning
+            state entirely. Each cell must be aware of its surroundings in order to know what to do on the next
+            game loop, and the SelfAwareGrid makes exactly that possible.
         </p>
 
         <h4 class="mt-8 font-display text-lg font-extralight tracking-tight">Rules:</h4>
