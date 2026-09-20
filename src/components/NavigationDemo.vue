@@ -244,9 +244,12 @@ const pad: { direction: Direction; label: string; glyph: string; area: string }[
     transition: background-color 150ms ease, border-color 150ms ease;
 }
 
-.pad-button:hover {
-    border-color: var(--color-brand-500);
-    background-color: color-mix(in srgb, var(--color-brand-500) 10%, transparent);
+/* Same pointer gate as .control-button, and the pad is the control most likely to be tapped repeatedly. */
+@media (hover: hover) {
+    .pad-button:hover {
+        border-color: var(--color-brand-500);
+        background-color: color-mix(in srgb, var(--color-brand-500) 10%, transparent);
+    }
 }
 
 .pad-button:active {

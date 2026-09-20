@@ -222,9 +222,19 @@
         transition: border-color 150ms ease, background-color 150ms ease;
     }
 
-    .control-button:hover:not(:disabled) {
-        border-color: var(--color-brand-500);
-        background-color: color-mix(in srgb, var(--color-brand-500) 10%, transparent);
+    /*
+     * Gated on a real pointer.
+     *
+     * A touch screen has no hover to leave, so a tapped button keeps these colours until something else is
+     * tapped — and on a button pressed over and over, like the Game of Life board's re-seed, that reads as a
+     * permanently brand-coloured control rather than as a hover. Tailwind's own `hover:` variant compiles to
+     * this same query, so gating it here is what brings the hand-written rule in line with the rest of the page.
+     */
+    @media (hover: hover) {
+        .control-button:hover:not(:disabled) {
+            border-color: var(--color-brand-500);
+            background-color: color-mix(in srgb, var(--color-brand-500) 10%, transparent);
+        }
     }
 
     .control-button:disabled {
