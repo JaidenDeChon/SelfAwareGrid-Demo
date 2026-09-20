@@ -3,6 +3,9 @@ import { useTemplateRef } from 'vue';
 import LifeBoard from './LifeBoard.vue';
 import CodeBlock from './CodeBlock.vue';
 import StatChip from './StatChip.vue';
+// The sample below the board is a real file rather than a string, so it cannot quietly drift into
+// something that would not run. `src/snippets/` holds nothing else the app imports.
+import lifeSnippet from '../snippets/life.js?raw';
 
 /*
  * The hero backdrop runs the same simulation at 56px. Here the cells are a third of that, which is the whole
@@ -23,21 +26,6 @@ const rules = [
     { name: 'Overpopulation', text: 'Any cell with more than 3 neighbors dies.' },
     { name: 'Reproduction', text: 'Any dead cell with exactly 3 live neighbors becomes a living cell.' }
 ];
-
-/** The real neighbour lookup this board runs on, trimmed to the four straight steps. */
-const snippet = `const grid = new SelfAwareGrid(gridElement, cellSize);
-
-// The eight neighbours of a cell, without knowing how wide the grid is.
-const neighboursOf = (i) => [
-    grid.isTopRow(i)      ? -1 : grid.getGridItemAbove(i),
-    grid.isBottomRow(i)   ? -1 : grid.getGridItemBelow(i),
-    grid.isLeftColumn(i)  ? -1 : grid.getGridItemToTheLeft(i, true),
-    grid.isRightColumn(i) ? -1 : grid.getGridItemToTheRight(i),
-    // ...and the four diagonals, by composing two of those steps.
-].filter((index) => index >= 0);
-
-// B3/S23 — the whole game, once you know who is next to whom.
-next[i] = alive[i] ? (count === 2 || count === 3) : count === 3;`;
 </script>
 
 <template>
@@ -93,7 +81,7 @@ next[i] = alive[i] ? (count === 2 || count === 3) : count === 3;`;
         </div>
 
         <div class="mt-6">
-            <CodeBlock label="life.js" :code="snippet" />
+            <CodeBlock label="life.js" :code="lifeSnippet" max-height="min(40rem, 70vh)" />
         </div>
     </section>
 </template>

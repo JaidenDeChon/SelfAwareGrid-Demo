@@ -7,8 +7,14 @@ const props = withDefaults(defineProps<{
     /** Header text. In the docs this is the snippet's own leading comment. */
     label?: string;
     lang?: string;
+    /**
+     * Caps the code area and lets it scroll instead of running down the page. Any CSS length; left off,
+     * the block is as tall as its code, which is what every short snippet wants.
+     */
+    maxHeight?: string;
 }>(), {
-    lang: 'javascript'
+    lang: 'javascript',
+    maxHeight: undefined
 });
 
 const rendered = computed(() => highlight(props.code, props.lang));
@@ -43,6 +49,11 @@ async function copy (): Promise<void> {
         </div>
 
         <!-- eslint-disable-next-line vue/no-v-html -->
-        <pre class="overflow-x-auto p-4 font-mono text-[0.8rem] leading-relaxed text-ink"><code v-html="rendered"></code></pre>
+        <pre
+            class="overflow-x-auto p-4 font-mono text-[0.8rem] leading-relaxed text-ink"
+            :class="maxHeight ? 'overflow-y-auto' : ''"
+            :style="maxHeight ? { maxHeight } : undefined"
+            :tabindex="maxHeight ? 0 : undefined"
+        ><code v-html="rendered"></code></pre>
     </div>
 </template>
