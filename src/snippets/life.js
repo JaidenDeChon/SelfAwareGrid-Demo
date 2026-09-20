@@ -1,27 +1,3 @@
-// Conway's Game of Life, with SelfAwareGrid working out which cells touch which.
-//
-// The cells are the grid's own children. A living one carries the `alive` class and a dead one does not,
-// so the elements the library is measuring are the elements you are looking at — there is no second copy
-// of the board being drawn anywhere.
-//
-//     <div id="board">
-//         <div id="cells"></div>
-//     </div>
-//     <button id="restart">Start over</button>
-//
-// The stylesheet owns everything about how it looks, including the fade. Two rules matter to the library:
-// the cells have to be the size this file expects, and the gaps between them have to be written down. A
-// grid that never states its gap leaves the library with nothing to measure, and it cannot work out where
-// anything is.
-//
-//     #board        { position: relative; overflow: hidden }
-//     #cells        { position: absolute; inset: 0;
-//                     display: grid; grid-template-columns: repeat(auto-fill, 18px);
-//                     column-gap: 0; row-gap: 0 }
-//     #cells > div  { width: 18px; height: 18px; background: #007BFF;
-//                     opacity: 0; transition: opacity 200ms ease-out }
-//     #cells > div.alive { opacity: 1 }
-
 import SelfAwareGrid from 'self-aware-grid';
 
 const CELL = 18;          // the width and height of one cell, in pixels
