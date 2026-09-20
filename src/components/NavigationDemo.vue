@@ -137,10 +137,8 @@ const pad: { direction: Direction; label: string; glyph: string; area: string }[
             <div class="flex flex-col items-start gap-3">
                 <button type="button" class="control-button" @click="focusFirstChild">Focus First Child</button>
                 <p class="max-w-md text-sm leading-relaxed text-ink-muted">
-                    Then use the
-                    <kbd class="kbd">&uarr;</kbd> <kbd class="kbd">&darr;</kbd>
-                    <kbd class="kbd">&larr;</kbd> <kbd class="kbd">&rarr;</kbd>
-                    keys &mdash; or the pad, which is there because phones do not have arrow keys.
+                    Once you focus a cell, use the arrow keys on your keyboard (or the keypad here) to traverse
+                    the grid in any direction.
                 </p>
             </div>
 
@@ -254,19 +252,6 @@ const pad: { direction: Direction; label: string; glyph: string; area: string }[
 
 .pad-button:active {
     background-color: color-mix(in srgb, var(--color-brand-500) 22%, transparent);
-}
-
-.kbd {
-    display: inline-block;
-    padding: 0.05rem 0.4rem;
-
-    border: 1px solid var(--line);
-    border-radius: 0.375rem;
-    background-color: var(--raised);
-
-    color: var(--ink);
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
 }
 
 @media (prefers-reduced-motion: reduce) {

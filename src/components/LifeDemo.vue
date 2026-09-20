@@ -35,14 +35,22 @@ const rules = [
         <h3 class="mt-3 font-display text-2xl font-extralight tracking-tight sm:text-3xl">Conway&rsquo;s Game of Life</h3>
 
         <p class="mt-4 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
-            The demo below uses SelfAwareGrid to power the navigation and spatial awareness of the organisms in a
-            live example of Conway&rsquo;s Game of Life. Use the button below the demo to start it over with a
-            random seed.
+            The demo below is Conway&rsquo;s Game of Life, powered by SelfAwareGrid&rsquo;s positional awareness
+            capabilities.
         </p>
 
         <p class="mt-4 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
-            Conway&rsquo;s Game of Life is a simple cellular simulation devised by John H. Conway in 1970. Despite
-            its simple rules, the game results in immense complexity.
+            Devised by John H. Conway in 1970 and beloved in mathematics, Conway&rsquo;s Game of Life is a simple
+            cellular simulation. Despite its simple rules, it produces immense complexity based on its beginning
+            state entirely. Each cell must be aware of its surroundings in order to know what to do on the next
+            game loop, and the SelfAwareGrid makes exactly that possible.
+        </p>
+
+        <p class="mt-4 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
+            This version of the simulation has a small twist compared to the original. To prevent the board from
+            eventually reaching a state where no more progress will be made, if the board becomes too still,
+            shapes that naturally traverse the board (called &ldquo;gliders&rdquo;) will be dispersed randomly to
+            keep things moving.
         </p>
 
         <h4 class="mt-8 font-display text-lg font-extralight tracking-tight">Rules:</h4>
@@ -56,10 +64,22 @@ const rules = [
             </li>
         </ul>
 
-        <div class="mt-8 flex flex-wrap gap-2 sm:gap-3">
+        <!--
+            The readouts and the re-seed button share one row: chips from the left, button pushed to the far
+            right. Every item wraps, so a narrow viewport breaks the row over as many lines as it needs, and
+            below `sm` the button drops to a full-width line of its own rather than being squeezed in beside
+            a chip.
+        -->
+        <div class="mt-8 flex flex-wrap items-center gap-2 sm:gap-3">
             <StatChip label="Column count" :value="board?.columnCount ?? 0" />
             <StatChip label="Row count" :value="board?.rowCount ?? 0" />
             <StatChip label="Population" :value="board?.population ?? 0" />
+
+            <button
+                type="button"
+                class="control-button w-full sm:ml-auto sm:w-auto"
+                @click="board?.reseed()"
+            >Start over with a random seed</button>
         </div>
 
         <div class="mt-5">
@@ -72,12 +92,6 @@ const rules = [
                 :seed-density="0.28"
                 label="Conway's Game of Life, running live on a grid measured by SelfAwareGrid"
             />
-        </div>
-
-        <div class="mt-5 flex flex-wrap items-center gap-3">
-            <button type="button" class="control-button" @click="board?.reseed()">Start over with a random seed</button>
-
-            <p class="font-mono text-xs text-ink-muted">Every seed is different</p>
         </div>
 
         <div class="mt-6">

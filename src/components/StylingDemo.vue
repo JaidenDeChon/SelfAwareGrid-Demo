@@ -219,13 +219,15 @@ const cssSnippet = `/* Every child is tagged with where it currently sits. */
     color: #ffffff;
 }
 
-.cell.self-aware-grid__child--is-top-row.self-aware-grid__child--is-right-column {
-    background: linear-gradient(135deg, var(--color-brand-500), var(--color-accent-500));
-    color: #ffffff;
-}
-
+/*
+ * The two corners where the blue row meets the yellow column. Both take the same 135deg axis so that each
+ * half of the cell faces the band it belongs to: top-right hands blue to the blue top row on its left and
+ * yellow to the yellow right column below it, and bottom-left hands blue up to the blue left column and
+ * yellow across to the yellow bottom row.
+ */
+.cell.self-aware-grid__child--is-top-row.self-aware-grid__child--is-right-column,
 .cell.self-aware-grid__child--is-bottom-row.self-aware-grid__child--is-left-column {
-    background: linear-gradient(45deg, var(--color-brand-500), var(--color-accent-500));
+    background: linear-gradient(135deg, var(--color-brand-500), var(--color-accent-500));
     color: #ffffff;
 }
 

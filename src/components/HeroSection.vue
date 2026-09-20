@@ -42,7 +42,7 @@ const points = [
             </h1>
 
             <p class="mt-6 max-w-2xl text-lg leading-relaxed text-ink-muted sm:text-xl">
-                SelfAwareGrid was created to add additional functionality to CSS grid, such as:
+                SelfAwareGrid adds additional functionality to CSS grid, such as:
             </p>
 
             <ul class="mt-6 max-w-2xl space-y-4">
