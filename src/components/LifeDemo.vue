@@ -46,6 +46,13 @@ const rules = [
             game loop, and the SelfAwareGrid makes exactly that possible.
         </p>
 
+        <p class="mt-4 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
+            This version of the simulation has a small twist compared to the original. To prevent the board from
+            eventually reaching a state where no more progress will be made, if the board becomes too still,
+            shapes that naturally traverse the board (called &ldquo;gliders&rdquo;) will be dispersed randomly to
+            keep things moving.
+        </p>
+
         <h4 class="mt-8 font-display text-lg font-extralight tracking-tight">Rules:</h4>
 
         <ul class="mt-4 max-w-2xl space-y-3">

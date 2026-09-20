@@ -13,12 +13,7 @@ let alive = new Uint8Array(0);     // 1 for a living cell, 0 for a dead one
 let wasAlive = new Uint8Array(0);  // the same, one generation ago
 let settled = 0;                   // generations that have gone by with barely anything moving
 
-/*
- * Work out how many cells fit in the box, and put that many empty divs in it.
- *
- * This is the one place that measures anything itself, and only because the library cannot count cells
- * that do not exist yet. Once they do exist, it takes over.
- */
+/* Work out how many cells fit in the box, and put that many empty divs in it. */
 function build () {
     const { width, height } = board.getBoundingClientRect();
     if (width === 0 || height === 0) return;
@@ -27,7 +22,6 @@ function build () {
     const down = Math.max(1, Math.ceil(height / CELL));
     const total = across * down;
 
-    // A resize that does not change how many cells fit leaves the board alone.
     if (total === alive.length) return;
 
     cells.replaceChildren(...Array.from({ length: total }, () => document.createElement('div')));
@@ -43,16 +37,7 @@ function build () {
     seed();
 }
 
-/*
- * Ask SelfAwareGrid what is around each cell.
- *
- * Nothing here counts columns. It asks for the cell above, below, left and right, and reaches the four
- * corners by taking two of those steps in a row. The edge checks are what stop a cell on the left edge
- * from being handed a neighbour on the right edge, and `true` tells the library not to wrap either.
- *
- * Because these are questions rather than sums, the answers simply change when the grid reflows, and
- * calling this again is all it takes to be right at the new width.
- */
+/* Determine what is around each cell. */
 function findNeighbours () {
     const total = alive.length;
     const onBoard = (cell) => cell >= 0 && cell < total;
@@ -80,7 +65,7 @@ function findNeighbours () {
     });
 }
 
-/* Start over, with every cell decided by a coin toss. */
+/* Start over, with every cell decided at random. */
 function seed () {
     for (let i = 0; i < alive.length; i++) alive[i] = Math.random() < START_ALIVE ? 1 : 0;
     settled = 0;
@@ -88,12 +73,12 @@ function seed () {
 }
 
 /*
- * One generation, by the four rules:
+ * Compute what happens to this cell next based on its surroundings:
  *
- *   a living cell with two or three living neighbours lives on;
- *   with fewer than two, it dies;
- *   with more than three, it dies;
- *   a dead cell with exactly three living neighbours comes to life.
+ * - a living cell with two or three living neighbours lives on;
+ * - with fewer than two, it dies;
+ * - with more than three, it dies;
+ * - a dead cell with exactly three living neighbours comes to life.
  */
 function step () {
     wasAlive.set(alive);
@@ -106,12 +91,7 @@ function step () {
     }
 }
 
-/*
- * Put the board on screen, touching only the cells that changed.
- *
- * Most cells hold their state from one generation to the next, and a class that is already there is not
- * worth setting again. Everything else — the colour, the fade, the theme — is the stylesheet's business.
- */
+/* Render the newest changes to the board. */
 function showChanges () {
     for (let i = 0; i < alive.length; i++) {
         if (alive[i] !== wasAlive[i]) cells.children[i].classList.toggle('alive', alive[i] === 1);
@@ -123,7 +103,7 @@ function showAll () {
     for (let i = 0; i < alive.length; i++) cells.children[i].classList.toggle('alive', alive[i] === 1);
 }
 
-/* The four directions a glider can be pointed in. */
+/* The four orientations a glider can take. */
 const GLIDERS = [
     [[0, 1, 0], [0, 0, 1], [1, 1, 1]],
     [[0, 1, 0], [1, 0, 0], [1, 1, 1]],
@@ -131,12 +111,7 @@ const GLIDERS = [
     [[1, 1, 1], [1, 0, 0], [0, 1, 0]]
 ];
 
-/*
- * The three-by-three block of cells starting at `corner`, or nothing if it would run off an edge.
- *
- * Walked out by asking the library for the cell to the right and the cell below, for the same reason the
- * neighbours are: it stays right at any width, without being told one.
- */
+/* The three-by-three block of cells starting at `corner`. */
 function blockAt (corner) {
     const right = (cell) => (cell < 0 || grid.isRightColumn(cell) ? -1 : grid.getGridItemToTheRight(cell));
     const below = (cell) => (cell < 0 || grid.isBottomRow(cell) ? -1 : grid.getGridItemBelow(cell));
@@ -159,11 +134,8 @@ function blockAt (corner) {
 }
 
 /*
- * Drop a couple of gliders onto the board.
- *
- * Boards tend to settle down: what is left of them holds still and stays that way, which is correct by the
- * rules but dull to watch. A glider is a small shape that travels on its own, so a pair of them gives the
- * settled parts something to run into — better than wiping the board and starting again.
+ * Drop a couple of gliders onto the board. Conway's Game of Life tends to settle down eventually so we're
+ * dropping in some gliders to mix things up and keep things moving for the sake of the demo.
  */
 function addGliders () {
     for (let tries = 0, added = 0; tries < 60 && added < 2; tries++) {
@@ -180,10 +152,9 @@ function addGliders () {
 }
 
 /*
- * Run it.
- *
+ * Run the simulation.
  * If the board has nearly emptied out, start again. If hardly anything has moved for a few generations,
- * send in the gliders instead. Either way the same one pass puts the result on screen.
+ * send in the gliders instead.
  */
 setInterval(() => {
     step();
@@ -209,8 +180,5 @@ setInterval(() => {
     }
 }, STEP_MS);
 
-// The button under the board.
 document.querySelector('#restart').addEventListener('click', seed);
-
-// Build it now, and again whenever the box changes size and the grid reflows underneath.
 new ResizeObserver(build).observe(board);
