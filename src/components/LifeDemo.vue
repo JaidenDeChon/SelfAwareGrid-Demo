@@ -44,7 +44,7 @@ next[i] = alive[i] ? (count === 2 || count === 3) : count === 3;`;
     <section id="life" class="scroll-mt-20 py-14 sm:py-20">
 
         <p class="font-mono text-xs uppercase tracking-[0.2em] text-brand-500">02 &mdash; Game of Life</p>
-        <h3 class="mt-3 font-display text-2xl font-extralight tracking-tight sm:text-3xl">Example: Conway&rsquo;s Game of Life</h3>
+        <h3 class="mt-3 font-display text-2xl font-extralight tracking-tight sm:text-3xl">Conway&rsquo;s Game of Life</h3>
 
         <p class="mt-4 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
             The demo below uses SelfAwareGrid to power the navigation and spatial awareness of the organisms in a
