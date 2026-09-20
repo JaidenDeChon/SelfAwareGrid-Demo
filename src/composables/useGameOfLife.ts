@@ -1,11 +1,10 @@
 import { onBeforeUnmount, onMounted, ref, shallowRef, type Ref } from 'vue';
 import SelfAwareGrid from 'self-aware-grid';
 
-/** The elements the simulation needs: a box to fill, a grid to measure, and a canvas to draw on. */
+/** The elements the simulation needs: a box to fill, and the grid of cells inside it. */
 export interface GameOfLifeElements {
     container: Ref<HTMLElement | null>;
     gridElement: Ref<HTMLElement | null>;
-    canvasElement: Ref<HTMLCanvasElement | null>;
 }
 
 export interface GameOfLifeOptions {
@@ -13,8 +12,6 @@ export interface GameOfLifeOptions {
     cell?: number;
     /** Milliseconds between generations. */
     stepMs?: number;
-    /** How long a birth or a death takes to fade in or out. */
-    fadeMs?: number;
     /** Share of cells alive in a fresh seed. */
     seedDensity?: number;
     /**
@@ -27,21 +24,23 @@ export interface GameOfLifeOptions {
 /**
  * Conway's Game of Life, with SelfAwareGrid answering every question about who neighbours whom.
  *
- * The hero backdrop and the Game of Life demo section are the same simulation at different sizes, so all of
- * it — the neighbour table, the canvas renderer, the fade, the observers — lives here, and the components
- * that use it only decide how big the cells are and what the board looks like.
+ * The cells are the grid's own children. A living one carries `is-alive` and a dead one does not, so what
+ * the library is measuring and what you are looking at are the same elements — which is the point of the
+ * demo, and lets the stylesheet own everything about how a board looks, including the fade and the theme.
+ *
+ * The hero backdrop and the Game of Life section are this same simulation at different sizes, so the whole
+ * of it lives here and the components using it only decide how big the cells are.
  */
 export function useGameOfLife (elements: GameOfLifeElements, options: GameOfLifeOptions = {}) {
 
     const {
         cell: CELL = 56,
         stepMs: STEP_MS = 700,
-        fadeMs: FADE_MS = 260,
         seedDensity: SEED_DENSITY = 0.3,
         sustain = true
     } = options;
 
-    const { container, gridElement, canvasElement } = elements;
+    const { container, gridElement } = elements;
 
     const cellCount = ref(0);
     const columnCount = ref(0);
@@ -55,27 +54,10 @@ export function useGameOfLife (elements: GameOfLifeElements, options: GameOfLife
     let neighbours: number[][] = [];
     let cells: Uint8Array = new Uint8Array(0);
     let previous: Uint8Array = new Uint8Array(0);
-    /** Per-cell render alpha, eased towards `cells` so births and deaths fade rather than pop. */
-    let alpha: Float32Array = new Float32Array(0);
-    /** Snapshot of `alpha` when the current fade began. */
-    let from: Float32Array = new Float32Array(0);
-    /** Indices whose alpha is actually moving during the current fade. */
-    let changed: Int32Array = new Int32Array(0);
-    let changedCount = 0;
-
-    let columns = 0;
-    let width = 0;
-    let height = 0;
-
-    let context: CanvasRenderingContext2D | null = null;
-    let palette = { alive: '0 123 255', aliveAlpha: 0.26 };
 
     let timer: ReturnType<typeof setInterval> | undefined;
-    let fadeFrame = 0;
     let resizeObserver: ResizeObserver | null = null;
     let visibilityObserver: IntersectionObserver | null = null;
-    let themeObserver: MutationObserver | null = null;
-    let onVisibilityChange: (() => void) | null = null;
 
     let onScreen = true;
     let quietGenerations = 0;
@@ -123,128 +105,30 @@ export function useGameOfLife (elements: GameOfLifeElements, options: GameOfLife
     }
 
     /**
-     * Reads the paint colour from the container rather than the document, so a board can override
-     * `--life-alive-alpha` locally — the hero wants a faint backdrop, the demo wants solid cells.
-     */
-    function readPalette (): void {
-        const style = getComputedStyle(container.value ?? document.documentElement);
-        palette = {
-            alive: style.getPropertyValue('--life-alive-rgb').trim() || palette.alive,
-            aliveAlpha: Number(style.getPropertyValue('--life-alive-alpha')) || palette.aliveAlpha
-        };
-    }
-
-    /**
-     * Draws the whole simulation in one pass.
+     * Writes the board onto the cells.
      *
-     * This used to be one DOM node per cell with a CSS transition on each. `background-color` cannot be animated
-     * on the compositor, so every frame repainted several hundred elements on the main thread — which both cost
-     * ~10% of a frame budget and forced the hero's blurred glow to be re-rasterised in step with the simulation.
-     * A single canvas is one paint of one element instead.
+     * Only the ones that changed are touched. In a typical generation most cells hold their state, and a
+     * class that is already there is not worth setting again — the diff is what keeps a board of two
+     * thousand cells down to a couple of hundred DOM writes a generation.
      */
-    /** Paints one cell at its current alpha, clearing whatever was under it first. */
-    function paintCell (i: number): void {
-        if (!context) return;
+    function paintChanges (): void {
+        const children = gridElement.value?.children;
+        if (!children) return;
 
-        const x = (i % columns) * CELL;
-        const y = Math.floor(i / columns) * CELL;
-
-        context.clearRect(x, y, CELL, CELL);
-
-        const a = alpha[i];
-        if (a < 0.01) return;
-
-        context.globalAlpha = a * palette.aliveAlpha;
-        context.fillRect(x, y, CELL, CELL);
+        for (let i = 0; i < cells.length; i++) {
+            if (cells[i] === previous[i]) continue;
+            (children[i] as HTMLElement | undefined)?.classList.toggle('is-alive', cells[i] === 1);
+        }
     }
 
-    /** Full repaint. Only needed on a resize, a re-seed or a theme change. */
-    function drawAll (): void {
-        if (!context) return;
+    /** Writes every cell, for when there is nothing sensible to diff against: a fresh seed or a reflow. */
+    function paintAll (): void {
+        const children = gridElement.value?.children;
+        if (!children) return;
 
-        context.clearRect(0, 0, width, height);
-
-        // One fillStyle for the whole pass. Per-cell alpha goes through globalAlpha, which is a number
-        // assignment — building an `rgb(... / a)` string per cell per frame meant several hundred colour
-        // parses every frame, and that alone cost more than the simulation.
-        context.fillStyle = `rgb(${palette.alive})`;
-
-        for (let i = 0; i < alpha.length; i++) {
-            const a = alpha[i];
-            if (a < 0.01) continue;
-
-            context.globalAlpha = a * palette.aliveAlpha;
-            context.fillRect((i % columns) * CELL, Math.floor(i / columns) * CELL, CELL, CELL);
+        for (let i = 0; i < cells.length; i++) {
+            (children[i] as HTMLElement | undefined)?.classList.toggle('is-alive', cells[i] === 1);
         }
-
-        context.globalAlpha = 1;
-    }
-
-    /**
-     * Repaints only the cells that are mid-fade.
-     *
-     * A canvas keeps what was drawn on it, and in a typical generation most cells do not change state — so
-     * clearing and refilling the whole surface every frame was mostly redrawing pixels identical to the ones
-     * already there, at device-pixel resolution.
-     */
-    function drawChanged (): void {
-        if (!context) return;
-
-        context.fillStyle = `rgb(${palette.alive})`;
-        for (let n = 0; n < changedCount; n++) paintCell(changed[n]);
-        context.globalAlpha = 1;
-    }
-
-    /**
-     * Fades every cell from where it was to where it now is, over exactly FADE_MS, then stops.
-     *
-     * Interpolating from a snapshot rather than easing towards a moving target is what makes that bound real:
-     * an exponential ease only approaches its target, so the loop outlived the step it belonged to and the
-     * animation never actually stopped running.
-     */
-    function runFade (): void {
-        cancelAnimationFrame(fadeFrame);
-        from.set(alpha);
-
-        changedCount = 0;
-        for (let i = 0; i < alpha.length; i++) {
-            if (Math.abs(cells[i] - alpha[i]) > 0.01) changed[changedCount++] = i;
-        }
-
-        if (changedCount === 0) return;
-
-        if (reducedMotion) {
-            for (let n = 0; n < changedCount; n++) alpha[changed[n]] = cells[changed[n]];
-            drawChanged();
-            return;
-        }
-
-        const start = performance.now();
-        let painted = -Infinity;
-
-        const stepFade = (now: number): void => {
-            const t = Math.min((now - start) / FADE_MS, 1);
-
-            // ~30fps is plenty for a background alpha fade, and halves the canvas uploads.
-            if (t < 1 && now - painted < 32) {
-                fadeFrame = requestAnimationFrame(stepFade);
-                return;
-            }
-
-            painted = now;
-            // ease-out, so the change lands softly.
-            const eased = 1 - (1 - t) * (1 - t);
-
-            for (let n = 0; n < changedCount; n++) {
-                const i = changed[n];
-                alpha[i] = from[i] + (cells[i] - from[i]) * eased;
-            }
-
-            drawChanged();
-            if (t < 1) fadeFrame = requestAnimationFrame(stepFade);
-        };
-
-        fadeFrame = requestAnimationFrame(stepFade);
     }
 
     function countPopulation (): number {
@@ -265,7 +149,7 @@ export function useGameOfLife (elements: GameOfLifeElements, options: GameOfLife
     /** Throws the board away and starts again from a fresh random seed. */
     function reseed (): void {
         seed();
-        runFade();
+        paintAll();
     }
 
     /** The four orientations of a glider, one per diagonal it can travel along. */
@@ -368,17 +252,18 @@ export function useGameOfLife (elements: GameOfLifeElements, options: GameOfLife
             }
         }
 
-        runFade();
+        // Seeding and gliders both write straight into `cells`, so this one diff covers them too.
+        paintChanges();
     }
 
     /**
      * Fills the container with exactly as many cells as it takes to cover it, in whole rows.
      *
-     * The column count comes from SelfAwareGrid once the cells exist; this only works out how many DOM nodes to
-     * create in the first place, which the library cannot know before they are there.
+     * This is the only measuring done by hand, and only because the library cannot count children that do not
+     * exist yet. Once they do, it takes over: the column count, and everything built on it, comes from there.
      */
     function resize (): void {
-        if (!container.value || !canvasElement.value) return;
+        if (!container.value) return;
 
         const rect = container.value.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) return;
@@ -387,42 +272,15 @@ export function useGameOfLife (elements: GameOfLifeElements, options: GameOfLife
         const nextRows = Math.max(1, Math.ceil(rect.height / CELL));
         const total = nextColumns * nextRows;
 
-        width = rect.width;
-        height = rect.height;
-
-        /*
-         * Deliberately 1 device pixel per CSS pixel, not devicePixelRatio.
-         *
-         * Everything drawn here is an axis-aligned block on an integer boundary, so there is no detail for
-         * a higher ratio to resolve — and the whole canvas surface is re-uploaded to the GPU on every draw
-         * regardless of how small the dirty region is. At devicePixelRatio 2 that upload is four times the
-         * pixels, under a mask and next to a 120px blur, which was enough to drop frames on its own.
-         */
-        const ratio = 1;
-        canvasElement.value.width = Math.round(width * ratio);
-        canvasElement.value.height = Math.round(height * ratio);
-        canvasElement.value.style.width = `${width}px`;
-        canvasElement.value.style.height = `${height}px`;
-
-        context = canvasElement.value.getContext('2d');
-        context?.setTransform(ratio, 0, 0, ratio, 0, 0);
-
-        if (total === cells.length && nextColumns === columns) {
-            drawAll();
-            return;
-        }
-
-        columns = nextColumns;
+        // A resize that does not change how many cells fit leaves the board alone.
+        if (total === cells.length && nextColumns === columnCount.value) return;
 
         cellCount.value = total;
         cells = new Uint8Array(total);
         previous = new Uint8Array(total);
-        alpha = new Float32Array(total);
-        from = new Float32Array(total);
-        changed = new Int32Array(total);
         seed();
 
-        // Let Vue render the measuring grid before the library measures it.
+        // Let Vue render the cells before the library measures them.
         requestAnimationFrame(() => {
             if (!gridElement.value) return;
 
@@ -430,19 +288,15 @@ export function useGameOfLife (elements: GameOfLifeElements, options: GameOfLife
             grid.value = new SelfAwareGrid(gridElement.value, CELL, false);
             grid.value.beginObservingResize();
 
-            columns = grid.value.columnCount();
-            columnCount.value = columns;
+            columnCount.value = grid.value.columnCount();
             rowCount.value = grid.value.rowCount();
             buildNeighbours();
-
-            for (let i = 0; i < alpha.length; i++) alpha[i] = cells[i];
-            drawAll();
+            paintAll();
         });
     }
 
     onMounted(() => {
         reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        readPalette();
         resize();
 
         resizeObserver = new ResizeObserver(() => resize());
@@ -454,23 +308,13 @@ export function useGameOfLife (elements: GameOfLifeElements, options: GameOfLife
         });
         if (container.value) visibilityObserver.observe(container.value);
 
-        onVisibilityChange = () => { if (!document.hidden) drawAll(); };
-        document.addEventListener('visibilitychange', onVisibilityChange);
-
-        // The theme toggle swaps the tokens the canvas paints with, so redraw when it does.
-        themeObserver = new MutationObserver(() => { readPalette(); drawAll(); });
-        themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-
         if (!reducedMotion) timer = setInterval(tick, STEP_MS);
     });
 
     onBeforeUnmount(() => {
         clearInterval(timer);
-        cancelAnimationFrame(fadeFrame);
         resizeObserver?.disconnect();
         visibilityObserver?.disconnect();
-        themeObserver?.disconnect();
-        if (onVisibilityChange) document.removeEventListener('visibilitychange', onVisibilityChange);
         grid.value?.destroy();
         grid.value = null;
     });

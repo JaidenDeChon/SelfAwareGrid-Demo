@@ -88,9 +88,9 @@ const rules = [
 
 <style scoped>
 /*
- * The board is a panel here rather than a backdrop, so the cells are painted at full strength instead of the
- * hero's whisper. The alpha is a CSS variable precisely so a board can be re-themed without the renderer
- * knowing anything about where it is being used.
+ * The board is a panel here rather than a backdrop, so the cells sit at full strength instead of the hero's
+ * whisper. Both boards are the same elements; only this one line separates them, which is what the cells
+ * being ordinary grid children buys.
  */
 .life-panel {
     --life-alive-alpha: 0.85;

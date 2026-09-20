@@ -29,10 +29,9 @@ const props = withDefaults(defineProps<{
 
 const container = useTemplateRef<HTMLElement>('container');
 const gridElement = useTemplateRef<HTMLElement>('gridElement');
-const canvasElement = useTemplateRef<HTMLCanvasElement>('canvasElement');
 
 const { cellCount, columnCount, rowCount, population, generation, reseed } = useGameOfLife(
-    { container, gridElement, canvasElement },
+    { container, gridElement },
     props
 );
 
@@ -43,20 +42,18 @@ defineExpose({ reseed, columnCount, rowCount, population, generation });
     <div
         ref="container"
         class="life"
-        :style="{ '--life-cell': `${cell}px` }"
+        :style="{ '--life-cell': `${cell}px`, '--life-fade': `${fadeMs}ms` }"
         :role="label ? 'img' : undefined"
         :aria-label="label"
         :aria-hidden="label ? undefined : 'true'"
     >
         <!--
-            The grid SelfAwareGrid measures. It is laid out but never painted: the canvas below draws every
-            cell, so these exist purely so the library has a real, reflowing grid to answer questions about.
+            The cells are the grid's children, and nothing else draws them: SelfAwareGrid measures exactly
+            the elements you are looking at, which is the whole claim the demo is making.
         -->
         <div ref="gridElement" class="life-grid">
-            <div v-for="index in cellCount" :key="index" class="life-probe"></div>
+            <div v-for="index in cellCount" :key="index" class="life-cell"></div>
         </div>
-
-        <canvas ref="canvasElement" class="life-canvas"></canvas>
     </div>
 </template>
 
@@ -65,7 +62,7 @@ defineExpose({ reseed, columnCount, rowCount, population, generation });
     position: relative;
     overflow: hidden;
 
-    /* Grid lines in CSS, as the static backdrop drew them: painted once, never per frame. */
+    /* Grid lines in CSS, as the static backdrop drew them: painted once, never per generation. */
     background-image:
         linear-gradient(to right, var(--line) 1px, transparent 1px),
         linear-gradient(to bottom, var(--line) 1px, transparent 1px);
@@ -80,17 +77,32 @@ defineExpose({ reseed, columnCount, rowCount, population, generation });
     grid-template-columns: repeat(auto-fill, var(--life-cell));
     column-gap: 0;
     row-gap: 0;
-
-    visibility: hidden;
 }
 
-.life-probe {
+/*
+ * A cell is always there and always coloured; only its opacity moves.
+ *
+ * That matters: opacity is one of the two things a browser can change without repainting the element, so a
+ * generation costs a composite rather than several hundred fills. Colour comes from tokens the theme swaps,
+ * so switching themes needs no redraw and no JavaScript at all.
+ */
+.life-cell {
     width: var(--life-cell);
     height: var(--life-cell);
+
+    background-color: rgb(var(--life-alive-rgb) / var(--life-alive-alpha));
+    opacity: 0;
+
+    transition: opacity var(--life-fade) ease-out;
 }
 
-.life-canvas {
-    position: absolute;
-    inset: 0;
+.life-cell.is-alive {
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .life-cell {
+        transition: none;
+    }
 }
 </style>

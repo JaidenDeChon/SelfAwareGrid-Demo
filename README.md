@@ -10,9 +10,10 @@ that measures a CSS grid as it reflows and gives every child an awareness of its
 - **Navigate a grid like a spreadsheet.** Arrow keys walk the grid vertically and horizontally using
   `getGridItemAbove` / `Below` / `ToTheLeft` / `ToTheRight`. An on-screen arrow pad covers touch devices, which
   have no arrow keys.
-- **Conway's Game of Life.** A live board where every cell's eight neighbours are resolved through the library
-  rather than through index arithmetic, so the simulation stays correct across a reflow without ever being told
-  how many columns it has. A button below it re-seeds the board, and the whole implementation is printed
+- **Conway's Game of Life.** A live board whose cells *are* the grid's children: a living one carries
+  `is-alive` and a dead one does not, so the elements the library measures are the elements you are looking at.
+  Every cell's eight neighbours are resolved through the library rather than through index arithmetic, so the
+  simulation stays correct across a reflow without ever being told how many columns it has. A button below it re-seeds the board, and the whole implementation is printed
   underneath in a scrolling block &mdash; read from `src/snippets/life.js` with `?raw`, so the code on the page
   is a real file rather than a string that can quietly stop working.
 - **Style rows and columns easily.** Resize the grid container and watch SelfAwareGrid retag the top row, bottom

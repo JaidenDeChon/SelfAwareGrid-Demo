@@ -1,46 +1,41 @@
 // Conway's Game of Life, with SelfAwareGrid working out which cells touch which.
 //
-// Three elements make it up: a box for the board to fill, a grid of empty divs for SelfAwareGrid to
-// measure, and a canvas that everything is drawn on. The divs are never painted — they exist so the
-// library has a real, reflowing grid to answer questions about.
+// The cells are the grid's own children. A living one carries the `alive` class and a dead one does not,
+// so the elements the library is measuring are the elements you are looking at — there is no second copy
+// of the board being drawn anywhere.
 //
 //     <div id="board">
-//         <div id="layout"></div>
-//         <canvas id="canvas"></canvas>
+//         <div id="cells"></div>
 //     </div>
 //     <button id="restart">Start over</button>
 //
-// Two things in the stylesheet matter. The cells have to be the size this file expects, and the gaps
-// between them have to be written down: a grid that never states its gap leaves the library with
-// nothing to measure, and it cannot work out where anything is.
+// The stylesheet owns everything about how it looks, including the fade. Two rules matter to the library:
+// the cells have to be the size this file expects, and the gaps between them have to be written down. A
+// grid that never states its gap leaves the library with nothing to measure, and it cannot work out where
+// anything is.
 //
 //     #board        { position: relative; overflow: hidden }
-//     #layout       { position: absolute; inset: 0; visibility: hidden;
+//     #cells        { position: absolute; inset: 0;
 //                     display: grid; grid-template-columns: repeat(auto-fill, 18px);
 //                     column-gap: 0; row-gap: 0 }
-//     #layout > div { width: 18px; height: 18px }
-//     #canvas       { position: absolute; inset: 0 }
+//     #cells > div  { width: 18px; height: 18px; background: #007BFF;
+//                     opacity: 0; transition: opacity 200ms ease-out }
+//     #cells > div.alive { opacity: 1 }
 
 import SelfAwareGrid from 'self-aware-grid';
 
 const CELL = 18;          // the width and height of one cell, in pixels
 const STEP_MS = 320;      // how long each generation is shown for
-const FADE_MS = 200;      // how long a cell takes to appear or disappear
 const START_ALIVE = 0.28; // how much of a fresh board begins alive
 
 const board = document.querySelector('#board');
-const layout = document.querySelector('#layout');
-const canvas = document.querySelector('#canvas');
-const context = canvas.getContext('2d');
+const cells = document.querySelector('#cells');
 
-let grid;           // the SelfAwareGrid reading the layout back to us
-let touching = [];  // for each cell, the cells around it
+let grid;                          // the SelfAwareGrid reading the layout back to us
+let touching = [];                 // for each cell, the cells around it
 let alive = new Uint8Array(0);     // 1 for a living cell, 0 for a dead one
 let wasAlive = new Uint8Array(0);  // the same, one generation ago
-let shown = new Float32Array(0);   // how visible each cell is on screen, from 0 to 1
-let columns = 0;
-let fadeFrame = 0;
-let settled = 0;    // generations that have gone by with barely anything moving
+let settled = 0;                   // generations that have gone by with barely anything moving
 
 /*
  * Work out how many cells fit in the box, and put that many empty divs in it.
@@ -52,30 +47,22 @@ function build () {
     const { width, height } = board.getBoundingClientRect();
     if (width === 0 || height === 0) return;
 
-    canvas.width = width;
-    canvas.height = height;
-
     const across = Math.max(1, Math.floor(width / CELL));
     const down = Math.max(1, Math.ceil(height / CELL));
     const total = across * down;
 
     // A resize that does not change how many cells fit leaves the board alone.
-    if (total === alive.length && across === columns) {
-        draw();
-        return;
-    }
+    if (total === alive.length) return;
 
-    layout.replaceChildren(...Array.from({ length: total }, () => document.createElement('div')));
+    cells.replaceChildren(...Array.from({ length: total }, () => document.createElement('div')));
 
     alive = new Uint8Array(total);
     wasAlive = new Uint8Array(total);
-    shown = new Float32Array(total);
 
     grid?.destroy();
-    grid = new SelfAwareGrid(layout, CELL);
+    grid = new SelfAwareGrid(cells, CELL);
     grid.beginObservingResize();
 
-    columns = grid.columnCount();
     findNeighbours();
     seed();
 }
@@ -88,7 +75,7 @@ function build () {
  * from being handed a neighbour on the right edge, and `true` tells the library not to wrap either.
  *
  * Because these are questions rather than sums, the answers simply change when the grid reflows, and
- * calling this again is all it takes to be correct at the new width.
+ * calling this again is all it takes to be right at the new width.
  */
 function findNeighbours () {
     const total = alive.length;
@@ -121,7 +108,7 @@ function findNeighbours () {
 function seed () {
     for (let i = 0; i < alive.length; i++) alive[i] = Math.random() < START_ALIVE ? 1 : 0;
     settled = 0;
-    fade();
+    showAll();
 }
 
 /*
@@ -141,45 +128,23 @@ function step () {
 
         alive[i] = wasAlive[i] ? (around === 2 || around === 3 ? 1 : 0) : (around === 3 ? 1 : 0);
     }
-
-    fade();
 }
 
-/* Move every cell towards where it now is, over FADE_MS, so births and deaths do not pop. */
-function fade () {
-    cancelAnimationFrame(fadeFrame);
-
-    const from = Float32Array.from(shown);
-    const start = performance.now();
-
-    const nextFrame = (time) => {
-        const progress = Math.min((time - start) / FADE_MS, 1);
-        const softened = 1 - (1 - progress) * (1 - progress);
-
-        for (let i = 0; i < shown.length; i++) {
-            shown[i] = from[i] + (alive[i] - from[i]) * softened;
-        }
-
-        draw();
-        if (progress < 1) fadeFrame = requestAnimationFrame(nextFrame);
-    };
-
-    fadeFrame = requestAnimationFrame(nextFrame);
-}
-
-/* Paint the board. A cell's place on the canvas is its position in the grid, times the cell size. */
-function draw () {
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = '#007BFF';
-
-    for (let i = 0; i < shown.length; i++) {
-        if (shown[i] < 0.01) continue;
-
-        context.globalAlpha = shown[i] * 0.85;
-        context.fillRect((i % columns) * CELL, Math.floor(i / columns) * CELL, CELL, CELL);
+/*
+ * Put the board on screen, touching only the cells that changed.
+ *
+ * Most cells hold their state from one generation to the next, and a class that is already there is not
+ * worth setting again. Everything else — the colour, the fade, the theme — is the stylesheet's business.
+ */
+function showChanges () {
+    for (let i = 0; i < alive.length; i++) {
+        if (alive[i] !== wasAlive[i]) cells.children[i].classList.toggle('alive', alive[i] === 1);
     }
+}
 
-    context.globalAlpha = 1;
+/* The same, for when there is nothing to compare against: a fresh seed, or a board just rebuilt. */
+function showAll () {
+    for (let i = 0; i < alive.length; i++) cells.children[i].classList.toggle('alive', alive[i] === 1);
 }
 
 /* The four directions a glider can be pointed in. */
@@ -242,7 +207,7 @@ function addGliders () {
  * Run it.
  *
  * If the board has nearly emptied out, start again. If hardly anything has moved for a few generations,
- * send in the gliders instead.
+ * send in the gliders instead. Either way the same one pass puts the result on screen.
  */
 setInterval(() => {
     step();
@@ -259,9 +224,12 @@ setInterval(() => {
 
     if (living < alive.length * 0.04) {
         seed();
-    } else if (settled >= 4) {
-        addGliders();
-        settled = 0;
+    } else {
+        if (settled >= 4) {
+            addGliders();
+            settled = 0;
+        }
+        showChanges();
     }
 }, STEP_MS);
 
