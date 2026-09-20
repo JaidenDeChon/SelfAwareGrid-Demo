@@ -82,10 +82,8 @@ const rules = [
             />
         </div>
 
-        <div class="mt-5 flex flex-wrap items-center gap-3">
+        <div class="mt-5">
             <button type="button" class="control-button" @click="board?.reseed()">Start over with a random seed</button>
-
-            <p class="font-mono text-xs text-ink-muted">Every seed is different</p>
         </div>
 
         <div class="mt-6">
