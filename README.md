@@ -7,12 +7,27 @@ that measures a CSS grid as it reflows and gives every child an awareness of its
 
 ## What it demonstrates
 
-- **Style rows and columns easily.** Resize the grid container and watch SelfAwareGrid retag the top row, bottom
-  row and outer columns as the grid reflows. Tap any cell to read `isTopRow`, `isNthRow`, `isNthColumn` and
-  friends straight off the live instance.
 - **Navigate a grid like a spreadsheet.** Arrow keys walk the grid vertically and horizontally using
   `getGridItemAbove` / `Below` / `ToTheLeft` / `ToTheRight`. An on-screen arrow pad covers touch devices, which
   have no arrow keys.
+- **Conway's Game of Life.** A live board whose cells *are* the grid's children: a living one carries
+  `is-alive` and a dead one does not, so the elements the library measures are the elements you are looking at.
+  Every cell's eight neighbours are resolved through the library rather than through index arithmetic, so the
+  simulation stays correct across a reflow without ever being told how many columns it has. A button below it re-seeds the board, and the whole implementation is printed
+  underneath in a scrolling block &mdash; read from `src/snippets/life.js` with `?raw`, so the code on the page
+  is a real file rather than a string that can quietly stop working.
+- **Style rows and columns easily.** Resize the grid container and watch SelfAwareGrid retag the top row, bottom
+  row and outer columns as the grid reflows. Tap any cell to read `isTopRow`, `isNthRow`, `isNthColumn` and
+  friends straight off the live instance.
+
+The three sit together under **Examples**, which along with **Documentation** is what the contents rail beside
+the page lists. That rail is the docs' own contents list grown to cover everything below the hero; it is sticky
+alongside the content on wide screens and collapses behind a "Contents" toggle on narrow ones, which is why the
+header carries no section links of its own.
+
+The hero backdrop is that same Game of Life: one simulation in `src/composables/useGameOfLife.ts`, rendered by
+`LifeBoard.vue`, used twice. The hero runs it at 56px cells as a faint backdrop; the demo section runs it at 18px
+(14px on phones) so the organisms have room to travel.
 
 ## Docs
 

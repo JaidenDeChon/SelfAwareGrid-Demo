@@ -1,64 +1,26 @@
 <script setup lang="ts">
 import CodeBlock from './CodeBlock.vue';
 import InstallTabs from './InstallTabs.vue';
-import { docsHeadings, docsParts } from '../docs';
-import { useScrollSpy } from '../composables/useScrollSpy';
-
-// The first heading stays selected while the reader is still above it, so the list is never blank.
-const { active: activeHeading } = useScrollSpy(
-    docsHeadings.map((heading) => heading.id),
-    { fallbackToFirst: true }
-);
+import { docsParts } from '../docs';
 </script>
 
 <template>
-    <section id="docs" class="shell scroll-mt-20 border-t border-line py-14 sm:py-20">
+    <section id="docs" class="scroll-mt-20 border-t border-line py-14 sm:py-20">
 
-        <p class="font-mono text-xs uppercase tracking-[0.2em] text-brand-500">03 &mdash; Docs</p>
-        <h2 class="mt-3 font-display text-3xl font-extralight tracking-tight sm:text-4xl">Documentation</h2>
+        <h2 class="font-display text-3xl font-extralight tracking-tight sm:text-4xl">Documentation</h2>
 
-        <div class="mt-10 gap-10 lg:grid lg:grid-cols-[13rem_minmax(0,1fr)]">
+        <div class="mt-10 min-w-0">
+            <h3 class="scroll-mt-24 font-display text-xl font-extralight tracking-tight">Installation</h3>
+            <div class="mt-4 max-w-md">
+                <InstallTabs />
+            </div>
 
-            <!-- Contents. Sticky alongside the docs once there is room for a second column. -->
-            <nav class="mb-10 lg:mb-0" aria-label="Documentation contents">
-                <div class="lg:sticky lg:top-24">
-                    <p class="font-mono text-xs uppercase tracking-wider text-ink-muted">Contents</p>
-                    <ul class="mt-3 space-y-1.5 border-l border-line">
-                        <li v-for="heading in docsHeadings" :key="heading.id">
-                            <!--
-                                The active entry gets the full treatment. Hovering a different entry previews
-                                it in a dimmer form; hovering the active one changes nothing, because its
-                                classes replace the hover ones rather than sitting underneath them.
-                            -->
-                            <a
-                                class="-ml-px block border-l py-0.5 text-sm transition-colors duration-150"
-                                :class="[
-                                    heading.depth === 3 ? 'pl-6' : 'pl-3 font-medium',
-                                    activeHeading === heading.id
-                                        ? 'border-brand-500 text-ink'
-                                        : 'border-transparent text-ink-muted hover:border-brand-500/40 hover:text-ink/70'
-                                ]"
-                                :aria-current="activeHeading === heading.id ? 'location' : undefined"
-                                :href="`#${heading.id}`"
-                            >{{ heading.text }}</a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
-
-            <div class="min-w-0">
-                <h3 class="scroll-mt-24 font-display text-xl font-extralight tracking-tight">Installation</h3>
-                <div class="mt-4 max-w-md">
-                    <InstallTabs />
-                </div>
-
-                <div class="mt-12 space-y-4">
-                    <template v-for="(part, index) in docsParts" :key="index">
-                        <!-- eslint-disable-next-line vue/no-v-html -->
-                        <div v-if="part.kind === 'html'" class="markdown" v-html="part.html"></div>
-                        <CodeBlock v-else :label="part.label" :code="part.code" :lang="part.lang" />
-                    </template>
-                </div>
+            <div class="mt-12 space-y-4">
+                <template v-for="(part, index) in docsParts" :key="index">
+                    <!-- eslint-disable-next-line vue/no-v-html -->
+                    <div v-if="part.kind === 'html'" class="markdown" v-html="part.html"></div>
+                    <CodeBlock v-else :label="part.label" :code="part.code" :lang="part.lang" />
+                </template>
             </div>
         </div>
     </section>

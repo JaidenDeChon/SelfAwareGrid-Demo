@@ -93,10 +93,10 @@ const pad: { direction: Direction; label: string; glyph: string; area: string }[
 </script>
 
 <template>
-    <section id="navigation" class="shell scroll-mt-20 py-14 sm:py-20">
+    <section id="navigation" class="scroll-mt-20 py-14 sm:py-20">
 
-        <p class="font-mono text-xs uppercase tracking-[0.2em] text-brand-500">02 &mdash; Navigation</p>
-        <h2 class="mt-3 font-display text-3xl font-extralight tracking-tight sm:text-4xl">Navigate a grid like a spreadsheet</h2>
+        <p class="font-mono text-xs uppercase tracking-[0.2em] text-brand-500">01 &mdash; Navigation</p>
+        <h3 class="mt-3 font-display text-2xl font-extralight tracking-tight sm:text-3xl">Navigate a grid like a spreadsheet</h3>
         <!-- The package author's own description of the problem, kept word for word. -->
         <p class="mt-4 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
             There is no easy way to navigate a grid of focusable items the same way you would a spreadsheet. If you
@@ -112,9 +112,9 @@ const pad: { direction: Direction; label: string; glyph: string; area: string }[
             <StatChip label="Focused child" :value="activeIndex" />
         </div>
 
-        <h3 class="mt-8 font-display text-lg font-extralight tracking-tight">
+        <h4 class="mt-8 font-display text-lg font-extralight tracking-tight">
             Focus a grid item, then traverse using arrow-keys!
-        </h3>
+        </h4>
 
         <div class="mt-3">
             <ResizablePanel label="Resize the navigation demo grid" :initial-fraction="0.72">
@@ -244,9 +244,12 @@ const pad: { direction: Direction; label: string; glyph: string; area: string }[
     transition: background-color 150ms ease, border-color 150ms ease;
 }
 
-.pad-button:hover {
-    border-color: var(--color-brand-500);
-    background-color: color-mix(in srgb, var(--color-brand-500) 10%, transparent);
+/* Same pointer gate as .control-button, and the pad is the control most likely to be tapped repeatedly. */
+@media (hover: hover) {
+    .pad-button:hover {
+        border-color: var(--color-brand-500);
+        background-color: color-mix(in srgb, var(--color-brand-500) 10%, transparent);
+    }
 }
 
 .pad-button:active {
@@ -266,35 +269,9 @@ const pad: { direction: Direction; label: string; glyph: string; area: string }[
     font-size: 0.75rem;
 }
 
-.control-button {
-    padding: 0.6rem 1rem;
-
-    border: 1px solid var(--line);
-    border-radius: 0.6rem;
-    background-color: var(--panel);
-
-    color: var(--ink);
-    font-size: 0.875rem;
-    font-weight: 500;
-
-    transition: border-color 150ms ease, background-color 150ms ease;
-}
-
-.control-button:hover:not(:disabled) {
-    border-color: var(--color-brand-500);
-    background-color: color-mix(in srgb, var(--color-brand-500) 10%, transparent);
-}
-
-.control-button:disabled {
-    color: var(--ink-muted);
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
 @media (prefers-reduced-motion: reduce) {
     .cell,
-    .pad-button,
-    .control-button {
+    .pad-button {
         transition: none;
     }
 }

@@ -66,7 +66,7 @@
     --code-comment: hsl(215 16% 46%);
     --code-punctuation: hsl(215 16% 40%);
 
-    /* Canvas cannot read hsl()/color-mix() tokens, so the hero simulation gets plain channels. */
+    /* Split into channels and an alpha so a board can dim itself by overriding one of them. */
     --life-alive-rgb: 0 123 255;
     --life-alive-alpha: 0.18;
 }
@@ -207,6 +207,48 @@
 }
 
 @layer components {
+    /* The demo sections' shared control: "Add one", "Remove one", "Start over with a random seed". */
+    .control-button {
+        padding: 0.6rem 1rem;
+
+        border: 1px solid var(--line);
+        border-radius: 0.6rem;
+        background-color: var(--panel);
+
+        color: var(--ink);
+        font-size: 0.875rem;
+        font-weight: 500;
+
+        transition: border-color 150ms ease, background-color 150ms ease;
+    }
+
+    /*
+     * Gated on a real pointer.
+     *
+     * A touch screen has no hover to leave, so a tapped button keeps these colours until something else is
+     * tapped — and on a button pressed over and over, like the Game of Life board's re-seed, that reads as a
+     * permanently brand-coloured control rather than as a hover. Tailwind's own `hover:` variant compiles to
+     * this same query, so gating it here is what brings the hand-written rule in line with the rest of the page.
+     */
+    @media (hover: hover) {
+        .control-button:hover:not(:disabled) {
+            border-color: var(--color-brand-500);
+            background-color: color-mix(in srgb, var(--color-brand-500) 10%, transparent);
+        }
+    }
+
+    .control-button:disabled {
+        color: var(--ink-muted);
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .control-button {
+            transition: none;
+        }
+    }
+
     /* Page gutter — 16px on phones, roomier once there is space. */
     .shell {
         width: 100%;
