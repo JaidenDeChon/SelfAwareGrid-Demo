@@ -1,19 +1,8 @@
 <script setup lang="ts">
 import LogoMark from './LogoMark.vue';
 import { useTheme } from '../composables/useTheme';
-import { useScrollSpy } from '../composables/useScrollSpy';
-
-const sections = [
-    { id: 'navigation', label: 'Navigation' },
-    { id: 'life', label: 'Game of Life' },
-    { id: 'styling', label: 'Styling' },
-    { id: 'docs', label: 'Docs' }
-];
 
 const { theme, toggle } = useTheme();
-
-// No section is current while the reader is still in the hero, so nothing is highlighted up there.
-const { active } = useScrollSpy(sections.map((section) => section.id));
 </script>
 
 <template>
@@ -25,24 +14,6 @@ const { active } = useScrollSpy(sections.map((section) => section.id));
                 <!-- Below 360px the third button leaves too little room for the wordmark; the mark alone carries it. -->
                 <span class="hidden truncate font-display text-lg font-normal tracking-tight min-[360px]:block sm:text-xl">SelfAwareGrid</span>
             </a>
-
-            <!--
-                The same treatment as the docs contents list: the current section gets the full style, and
-                hovering a different link previews it in a dimmer form. Active classes replace the hover ones
-                rather than sitting under them, so hovering the current link changes nothing.
-            -->
-            <nav class="hidden items-center gap-6 text-sm md:flex">
-                <a
-                    v-for="section in sections"
-                    :key="section.id"
-                    class="border-b-2 pb-0.5 transition-colors duration-150"
-                    :class="active === section.id
-                        ? 'border-brand-500 text-ink'
-                        : 'border-transparent text-ink-muted hover:border-brand-500/40 hover:text-ink/70'"
-                    :aria-current="active === section.id ? 'location' : undefined"
-                    :href="`#${section.id}`"
-                >{{ section.label }}</a>
-            </nav>
 
             <div class="flex shrink-0 items-center gap-2">
                 <a

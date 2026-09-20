@@ -41,10 +41,10 @@ next[i] = alive[i] ? (count === 2 || count === 3) : count === 3;`;
 </script>
 
 <template>
-    <section id="life" class="shell scroll-mt-20 py-14 sm:py-20">
+    <section id="life" class="scroll-mt-20 py-14 sm:py-20">
 
         <p class="font-mono text-xs uppercase tracking-[0.2em] text-brand-500">02 &mdash; Game of Life</p>
-        <h2 class="mt-3 font-display text-3xl font-extralight tracking-tight sm:text-4xl">Example: Conway&rsquo;s Game of Life</h2>
+        <h3 class="mt-3 font-display text-2xl font-extralight tracking-tight sm:text-3xl">Example: Conway&rsquo;s Game of Life</h3>
 
         <p class="mt-4 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
             The demo below uses SelfAwareGrid to power the navigation and spatial awareness of the organisms in a
@@ -57,7 +57,7 @@ next[i] = alive[i] ? (count === 2 || count === 3) : count === 3;`;
             its simple rules, the game results in immense complexity.
         </p>
 
-        <h3 class="mt-8 font-display text-lg font-extralight tracking-tight">Rules:</h3>
+        <h4 class="mt-8 font-display text-lg font-extralight tracking-tight">Rules:</h4>
 
         <ul class="mt-4 max-w-2xl space-y-3">
             <li v-for="rule in rules" :key="rule.name" class="flex gap-3">

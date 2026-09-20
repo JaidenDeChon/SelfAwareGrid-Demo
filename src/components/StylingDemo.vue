@@ -64,10 +64,10 @@ const cssSnippet = `/* Every child is tagged with where it currently sits. */
 </script>
 
 <template>
-    <section id="styling" class="shell scroll-mt-20 py-14 sm:py-20">
+    <section id="styling" class="scroll-mt-20 py-14 sm:py-20">
 
         <p class="font-mono text-xs uppercase tracking-[0.2em] text-brand-500">03 &mdash; Classnames</p>
-        <h2 class="mt-3 font-display text-3xl font-extralight tracking-tight sm:text-4xl">Style rows and columns easily</h2>
+        <h3 class="mt-3 font-display text-2xl font-extralight tracking-tight sm:text-3xl">Style rows and columns easily</h3>
         <!-- The package author's own description of the problem, kept word for word. -->
         <p class="mt-4 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
             Using CSS, there&rsquo;s no way to style specific columns or rows of a responsive grid. If you know
@@ -82,7 +82,7 @@ const cssSnippet = `/* Every child is tagged with where it currently sits. */
             <StatChip label="Cell count" :value="cellCount" />
         </div>
 
-        <h3 class="mt-8 font-display text-lg font-extralight tracking-tight">Resize me!</h3>
+        <h4 class="mt-8 font-display text-lg font-extralight tracking-tight">Resize me!</h4>
 
         <div class="mt-3">
             <ResizablePanel label="Resize the styling demo grid" :initial-fraction="0.72">

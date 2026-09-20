@@ -17,6 +17,11 @@ that measures a CSS grid as it reflows and gives every child an awareness of its
   row and outer columns as the grid reflows. Tap any cell to read `isTopRow`, `isNthRow`, `isNthColumn` and
   friends straight off the live instance.
 
+The three sit together under **Examples**, which along with **Documentation** is what the contents rail beside
+the page lists. That rail is the docs' own contents list grown to cover everything below the hero; it is sticky
+alongside the content on wide screens and collapses behind a "Contents" toggle on narrow ones, which is why the
+header carries no section links of its own.
+
 The hero backdrop is that same Game of Life: one simulation in `src/composables/useGameOfLife.ts`, rendered by
 `LifeBoard.vue`, used twice. The hero runs it at 56px cells as a faint backdrop; the demo section runs it at 18px
 (14px on phones) so the organisms have room to travel.

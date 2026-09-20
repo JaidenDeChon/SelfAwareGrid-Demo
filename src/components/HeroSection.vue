@@ -56,7 +56,7 @@ const points = [
 
             <div class="mt-10 flex flex-col gap-5 sm:flex-row sm:items-end sm:gap-4">
                 <a
-                    href="#navigation"
+                    href="#examples"
                     class="inline-flex shrink-0 items-center justify-center rounded-xl bg-brand-500 px-5 py-3 font-medium text-white transition-colors duration-150 hover:bg-brand-600"
                 >Try the demo</a>
 
