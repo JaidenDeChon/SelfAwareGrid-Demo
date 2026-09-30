@@ -126,9 +126,16 @@
      * themed background, this reads as the content resolving out of the page rather than a white flash,
      * in either colour scheme. It is a CSS animation rather than a JS class toggle so it cannot get stuck
      * at opacity 0 if something goes wrong before mount.
+     *
+     * `backwards`, not `both`: #app contains the sticky header, and a fill that outlives the animation leaves an
+     * identity transform on #app for good. That gives #app its own compositing layer with a transparent
+     * background, which the header's backdrop blur then samples. Wherever that layer has no opaque paint of
+     * its own — text sitting straight on the page — the blurred copy comes out mostly transparent, and the
+     * crisp original shows through the tint with a haze around it. Cards and panels, which paint their own
+     * background, blurred properly, which is why the effect looked inconsistent.
      */
     #app {
-        animation: page-fade-in 700ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+        animation: page-fade-in 700ms cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
     }
 
     @keyframes page-fade-in {

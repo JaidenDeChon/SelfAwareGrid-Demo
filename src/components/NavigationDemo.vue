@@ -112,6 +112,25 @@ const pad: { direction: Direction; label: string; glyph: string; area: string }[
             <StatChip label="Focused child" :value="activeIndex" />
         </div>
 
+        <!--
+            Above the grid, not below it. Each added row pushes everything under the grid down by a row, so a
+            second tap at the same spot used to land on the width slider instead and snap the panel to its minimum.
+        -->
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+            <button
+                type="button"
+                class="control-button"
+                :disabled="cellCount >= 72"
+                @click="cellCount = Math.min(72, cellCount + 1)"
+            >Add one</button>
+            <button
+                type="button"
+                class="control-button"
+                :disabled="cellCount <= 4"
+                @click="cellCount = Math.max(4, cellCount - 1)"
+            >Remove one</button>
+        </div>
+
         <h4 class="mt-8 font-display text-lg font-extralight tracking-tight">
             Focus a grid item, then traverse using arrow-keys!
         </h4>
@@ -124,7 +143,7 @@ const pad: { direction: Direction; label: string; glyph: string; area: string }[
                         :key="index"
                         type="button"
                         class="cell"
-                        :class="activeIndex === index - 1 ? 'is-active' : ''"
+                        :data-active="activeIndex === index - 1 || undefined"
                         :tabindex="activeIndex === index - 1 ? 0 : -1"
                         :aria-label="`Cell ${index - 1}`"
                         @click="activeIndex = index - 1"
@@ -153,21 +172,6 @@ const pad: { direction: Direction; label: string; glyph: string; area: string }[
                     @click="move(button.direction, false)"
                 >{{ button.glyph }}</button>
             </div>
-        </div>
-
-        <div class="mt-6 flex flex-wrap items-center gap-3">
-            <button
-                type="button"
-                class="control-button"
-                :disabled="cellCount >= 72"
-                @click="cellCount = Math.min(72, cellCount + 1)"
-            >Add one</button>
-            <button
-                type="button"
-                class="control-button"
-                :disabled="cellCount <= 4"
-                @click="cellCount = Math.max(4, cellCount - 1)"
-            >Remove one</button>
         </div>
 
         <div class="mt-6">
@@ -206,7 +210,8 @@ const pad: { direction: Direction; label: string; glyph: string; area: string }[
     transition: background-color 150ms ease, color 150ms ease;
 }
 
-.cell.is-active {
+/* A data attribute rather than a bound class, so Vue never overwrites the classnames SelfAwareGrid assigns. */
+.cell[data-active] {
     border-color: transparent;
     background: var(--color-brand-500);
     color: #ffffff;
