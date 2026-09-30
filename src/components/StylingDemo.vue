@@ -82,26 +82,11 @@ const cssSnippet = `/* Every child is tagged with where it currently sits. */
             <StatChip label="Cell count" :value="cellCount" />
         </div>
 
-        <h4 class="mt-8 font-display text-lg font-extralight tracking-tight">Resize me!</h4>
-
-        <div class="mt-3">
-            <ResizablePanel label="Resize the styling demo grid" :initial-fraction="0.72">
-                <div ref="gridElement" class="sag-grid">
-                    <button
-                        v-for="index in cellCount"
-                        :key="index"
-                        type="button"
-                        class="cell"
-                        :class="selectedIndex === index - 1 ? 'is-selected' : ''"
-                        :aria-pressed="selectedIndex === index - 1"
-                        :aria-label="`Inspect cell ${index - 1}`"
-                        @click="selectedIndex = selectedIndex === index - 1 ? null : index - 1"
-                    >{{ index - 1 }}</button>
-                </div>
-            </ResizablePanel>
-        </div>
-
-        <div class="mt-5 flex flex-wrap items-center gap-3">
+        <!--
+            Above the grid, not below it. Each added row pushes everything under the grid down by a row, so a
+            second tap at the same spot used to land on the width slider instead and snap the panel to its minimum.
+        -->
+        <div class="mt-4 flex flex-wrap items-center gap-3">
             <button
                 type="button"
                 class="control-button"
@@ -118,8 +103,26 @@ const cssSnippet = `/* Every child is tagged with where it currently sits. */
             <p class="basis-full font-mono text-xs text-ink-muted sm:basis-auto">Tap a cell to inspect it</p>
         </div>
 
+        <h4 class="mt-8 font-display text-lg font-extralight tracking-tight">Resize me!</h4>
+
+        <div class="mt-3">
+            <ResizablePanel label="Resize the styling demo grid" :initial-fraction="0.72">
+                <div ref="gridElement" class="sag-grid">
+                    <button
+                        v-for="index in cellCount"
+                        :key="index"
+                        type="button"
+                        class="cell"
+                        :aria-pressed="selectedIndex === index - 1"
+                        :aria-label="`Inspect cell ${index - 1}`"
+                        @click="selectedIndex = selectedIndex === index - 1 ? null : index - 1"
+                    >{{ index - 1 }}</button>
+                </div>
+            </ResizablePanel>
+        </div>
+
         <!-- Inspector -->
-        <div class="mt-4 rounded-2xl border border-line bg-panel p-4 sm:p-5">
+        <div class="mt-5 rounded-2xl border border-line bg-panel p-4 sm:p-5">
             <p v-if="!selection" class="font-mono text-sm text-ink-muted">
                 No cell selected. Tap one above to read its position straight off the API.
             </p>
@@ -192,7 +195,12 @@ const cssSnippet = `/* Every child is tagged with where it currently sits. */
     transform: translateY(-1px);
 }
 
-.cell.is-selected {
+/*
+ * Keyed off `aria-pressed` rather than a bound class. SelfAwareGrid writes its classnames straight onto these
+ * elements, and a `:class` binding makes Vue reassign the whole `className` whenever it changes — which wiped
+ * the library's classnames each time a cell was selected or deselected.
+ */
+.cell[aria-pressed='true'] {
     box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--color-brand-500);
 }
 
